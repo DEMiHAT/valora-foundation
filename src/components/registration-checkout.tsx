@@ -27,14 +27,14 @@ async function post(path: string, input: unknown) {
   return result;
 }
 
-export function RegistrationCheckout({ event, ready, refundPolicy }: { event: FoundationEvent; ready: boolean; refundPolicy: string }) {
+export function RegistrationCheckout({ event, ready, refundPolicy, testMode = false }: { event: FoundationEvent; ready: boolean; refundPolicy: string; testMode?: boolean }) {
   const [busy, setBusy] = useState(false), [error, setError] = useState(""), [notice, setNotice] = useState("");
   const [session, setSession] = useState<CheckoutSession>(), [paid, setPaid] = useState(false);
   const [preferences, setPreferences] = useState<string[]>(Array(event.preferenceCount).fill(""));
   const [resultStatus, setResultStatus] = useState("");
   const inFlight = useRef(false);
   const requestId = useRef<string | undefined>(undefined);
-  const storageKey = `valora-checkout:${event.id}`;
+  const storageKey = `valora-checkout:${testMode ? "test" : "live"}:${event.id}`;
   useEffect(() => {
     try { requestId.current = sessionStorage.getItem(`${storageKey}:request`) ?? undefined; const saved = sessionStorage.getItem(storageKey); if (saved) { const parsed = JSON.parse(saved); if (parsed.token && parsed.order_id && parsed.registration_id) setSession(parsed); } } catch {}
   }, [storageKey]);
@@ -81,8 +81,9 @@ export function RegistrationCheckout({ event, ready, refundPolicy }: { event: Fo
       await open(checkout, {name: fields.name, email: fields.email, contact: fields.phone});
     } catch (e) { setError((e as Error).message); setBusy(false); inFlight.current = false; }
   }
-  if (paid) return <div className="checkout-success"><CheckCircle2 size={48} strokeWidth={1.2} /><h2>Payment confirmed.</h2><p>{resultStatus === "MANUAL_ALLOCATION_REQUIRED" ? "Your chosen committees are full. Our team will arrange your allocation and email your E-ID." : "Your committee allocation and digital E-ID will be sent to your registered email. Check your inbox and spam folder."}</p><div className="checkout-reference">Registration reference<strong>{session?.registration_id}</strong></div><Link href={`/events/${event.slug}`} className="button button-primary">Conference details <ArrowUpRight size={18} /></Link></div>;
+  if (paid) return <div className="checkout-success"><CheckCircle2 size={48} strokeWidth={1.2} /><h2>{testMode ? "Test payment confirmed." : "Payment confirmed."}</h2>{testMode && <p>This was a simulated payment. No conference seat has been reserved.</p>}<p>{testMode ? "Your test registration and allocation are available in the organiser dashboard." : resultStatus === "MANUAL_ALLOCATION_REQUIRED" ? "Your chosen committees are full. Our team will arrange your allocation and email your E-ID." : "Your committee allocation and digital E-ID will be sent to your registered email. Check your inbox and spam folder."}</p><div className="checkout-reference">Registration reference<strong>{session?.registration_id}</strong></div><Link href={`/events/${event.slug}`} className="button button-primary">Conference details <ArrowUpRight size={18} /></Link></div>;
   return <div className="checkout-panel"><div className="checkout-panel-heading"><h2>{session ? "Resume registration" : "Delegate registration"}</h2><p>{session ? "Your registration is saved in this browser tab. Resume your payment or check its status." : `Enter your details and rank ${event.preferenceCount} committee preferences.`}</p></div>
+    {testMode && <div className="important-note" role="status"><ShieldCheck size={22}/><div><h3>Test payments only</h3><p>No real money is charged. Test registrations do not reserve conference seats.</p></div></div>}
     {!ready && <div className="important-note"><ShieldCheck size={22} /><div><h3>Registration opens soon</h3><p>Payments are not open yet. Contact Valora for registration updates.</p></div></div>}
     <form onSubmit={submit}>
       {!session && <><div className="checkout-fields">{event.fields.map(field => <label key={field.key}>{field.label}{field.required && <span> *</span>}{field.type === "select" ? <select name={field.key} required={field.required} defaultValue="Beginner">{field.options?.map(option => <option key={option}>{option}</option>)}</select> : <input name={field.key} type={field.type} required={field.required} maxLength={field.key === "email" ? 254 : field.key === "phone" ? 20 : 120} autoComplete={field.key === "name" ? "name" : field.key === "email" ? "email" : field.key === "phone" ? "tel" : "off"} placeholder={field.key === "name" ? "Your full name" : field.key === "email" ? "you@example.com" : field.key === "phone" ? "+91" : field.label} />}</label>)}</div>

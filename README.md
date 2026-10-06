@@ -14,7 +14,7 @@ npm run dev
 
 `setup:local` creates `.env.local` with a random organiser password, a scrypt password hash, a session secret and a worker secret. It prints the organiser credentials **once** and will not overwrite an existing environment file. Save the password securely. Visit `http://localhost:3000` and `/admin/login`.
 
-The local datastore is `.data/state.json`; it is ignored by source control. It uses a file lock and atomic file replacement. It is for development only. Production operations require the Apps Script adapter because Vercel filesystem writes are not durable.
+The local datastore is `.data/state.json`; it is ignored by source control. It uses a file lock and atomic file replacement. It is for development only. Production uses Supabase PostgreSQL through the Next.js server. Vercel filesystem writes are not durable. Google Sheets and Apps Script are optional legacy adapters, not prerequisites.
 
 Run `npm run typecheck`, `npm test`, and `npm run build` to validate the shared domain and application. Live payment delivery requires your Razorpay test credentials and webhook deployment.
 
@@ -41,13 +41,27 @@ PAYMENT_REFUND_POLICY="Your actual cancellation and refund policy."
 VALORA_MUN_MATRIX_APPROVED=true
 ```
 
-Checkout stays closed until these values are set. Start with Razorpay **test keys**. In the Razorpay Dashboard enable automatic capture and configure `https://your-domain/api/payments/webhook` for **payment.captured** and **order.paid**, using the same webhook secret. Production still uses the existing Apps Script datastore: run `npm run build:apps-script`, copy the generated `apps-script/Domain.gs` and updated `apps-script/Code.gs` into your Apps Script project, redeploy, and set `MATRIX_APPROVED=true` in its Script Properties. Never expose API secrets in `NEXT_PUBLIC_` variables.
+Checkout stays closed until its server credentials and datastore are configured. Start with Razorpay **test keys**. In the Razorpay Dashboard enable automatic capture and configure `https://your-domain/api/payments/webhook` for **payment.captured** and **order.paid**, using the same webhook secret. Configure the Supabase datastore below. Test keys use isolated test records and an explicit simulated-payment notice; they do not need a live refund policy or committee approval. Live keys require the real refund policy and committee approval before checkout opens. Never expose API secrets in `NEXT_PUBLIC_` variables.
 
 `POST /api/payments/order` validates the registration and creates an order with the server-configured fee in paise. Checkout receives only the public key, order and signed registration token. `POST /api/payments/verify` checks the signature and fetches payment evidence from Razorpay; only a matching **captured**, full-amount INR payment can fulfil the registration. Authenticated webhooks provide recovery if the browser closes. Settlement, allocation and E-ID issuance are atomic and idempotent under the existing datastore lock. Authorised payments remain pending until capture. `/api/payments/status` accepts the signed checkout token, reconciles captured order payments directly with Razorpay when needed, and returns only confirmation/status, without participant details or E-ID tokens.
 
 A saved checkout can be resumed in the same browser tab after cancellation, payment failure or reload. If the tab is lost, organisers can locate the pending registration by email; there is no public lookup by email that exposes or takes over another delegate’s checkout. Existing Google Form records and manual UPI admin actions remain available for historical/imported payments. Gateway records cannot be manually marked paid, rejected or edited. Refunds are handled through the Razorpay Dashboard and organiser support; this integration does not create refunds or automatically revoke E-IDs on refunds/disputes.
 
 Before going live, test success, failure, cancellation/resume, webhook-only completion and replay with Razorpay test keys, verify emails and E-IDs, then replace the test keys with live keys and configure the live webhook. The external form is now optional and used only for legacy organiser imports; see [Apps Script setup](apps-script/README.md).
+
+## Supabase registration backend
+
+Set `DATA_PROVIDER=supabase`, `DATABASE_URL` to the Supabase **Transaction pooler** connection string, and `DATABASE_CA_CERT` to the Supabase CA PEM. These are server variables; never use a `NEXT_PUBLIC_` prefix. The client disables prepared statements for transaction pooling and verifies TLS against the CA.
+
+Run `npx supabase login`, `npx supabase link --project-ref YOUR_PROJECT_REF`, and `npx supabase db push` to apply `supabase/migrations`. The CLI is installed as a project dev dependency. No Google Sheet, Apps Script deployment, Supabase browser key, or separate backend server is required.
+
+The private `valora_private` schema is outside Supabase's public Data API. RLS is enabled with no browser policies. The Next.js server reads and updates the domain state inside PostgreSQL transactions using a locked row. This keeps payment replays, school registration batches, allocation, E-ID issuance, and email queue updates atomic across Vercel instances. The two state rows isolate Razorpay **test** records from **live** records; the active key prefix selects the workspace. Rate counters use a separate table. This design suits the current conference size; much larger event volumes should migrate the state document to normalized tables.
+
+The authenticated `/api/admin/snapshot` calculates event totals on the server. `/admin` displays them and refreshes every 30 seconds while visible. Switching to live Razorpay keys selects the separate live workspace; test students do not consume live seats.
+
+Configure `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH` (scrypt salt:hash), and `SESSION_SECRET` for organiser access. Configure SMTP for E-ID email delivery; without SMTP, the outbox remains queued. Request handlers attempt delivery after settlement; `/api/email/process` also accepts an authenticated worker request using `CRON_SECRET`. Apps Script is not required to call it.
+
+Database integration tests run against a disposable local PostgreSQL database with `TEST_DATABASE_URL`. They verify concurrent confirmation deduplication, rollback, live/test isolation, rate limiting, persistence across connections, and denied untrusted access. The default test suite skips this test when no disposable database is provided.
 
 ## Interactive visuals
 
@@ -107,7 +121,7 @@ Draft matrices must be reviewed before live import. Set `VALORA_MUN_MATRIX_APPRO
 
 `public UI → external form → form submit trigger → repository → payment verification → shared allocation domain → E-ID → outbox → Nodemailer`
 
-`Repository` in `src/lib/repository.ts` isolates persistence. `src/lib/domain.ts` contains event-agnostic business rules. The generated `apps-script/Domain.gs` bundles the **same** implementation and boundary validators, so Sheets and local development do not diverge. Replacing Sheets with PostgreSQL requires a new repository adapter and a transaction around operations; the public/frontend contracts remain unchanged. `PaymentProvider` and `EmailTransport` isolate later provider changes.
+`Repository` in `src/lib/repository.ts` isolates persistence. `src/lib/domain.ts` contains event-agnostic business rules. The generated `apps-script/Domain.gs` bundles the **same** implementation and boundary validators, so Sheets and local development do not diverge. The Supabase adapter uses PostgreSQL transactions and row locking around domain operations; public/frontend contracts remain unchanged. `PaymentProvider` and `EmailTransport` isolate later provider changes.
 
 The visible Sheets tabs are Participants, Registrations, Committees, Portfolios, Allocations, Credentials, Outbox and Audit. Portfolios include `event_id` so committees with the same ID in two events remain isolated. Do not edit projected tabs directly: use the dashboard. A protected hidden `_State` snapshot is authoritative. See the Apps Script guide for backups and recovery.
 

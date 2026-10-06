@@ -37,8 +37,11 @@ type Section =
   | "activity";
 type Snapshot = {
   state: DomainState;
+  totals: Record<string, {total: number; verified: number; pending: number; allocated: number; unallocated: number}>;
   events: (FoundationEvent & { matrixApproved: boolean })[];
   provider: string;
+  paymentMode: "test" | "live" | "unconfigured";
+  checkoutReady: boolean;
   emailProvider: string;
   emailConfigured: boolean;
 };
@@ -149,7 +152,10 @@ export function AdminWorkspace({ section }: { section: Section }) {
   }, []);
   useEffect(() => {
     load();
+    const timer = setInterval(() => { if (document.visibilityState === "visible") load(); }, 30000);
+    return () => clearInterval(timer);
   }, [load]);
+  const totals = data?.totals[eventId];
   const state = data?.state,
     event = data?.events.find((e) => e.id === eventId),
     rows: RegistrationView[] = state
@@ -353,13 +359,13 @@ export function AdminWorkspace({ section }: { section: Section }) {
               View event <ArrowUpRight size={14} />
             </Link>
           </div>
+          {data.paymentMode === "test" && <div className="admin-alert"><InfoIcon/><span>Test payment workspace. These registrations and totals are isolated from live conference bookings.</span></div>}
           {data.provider === "Local development" && (
             <div className="admin-alert">
               <InfoIcon />
               <span>
                 Development workspace. Records stay on this computer and email
-                delivery follows your email provider setting. Connect Google
-                Sheets for live operations.
+                delivery follows your email provider setting. Connect Supabase for live operations.
               </span>
             </div>
           )}
@@ -379,23 +385,23 @@ export function AdminWorkspace({ section }: { section: Section }) {
                 {[
                   {
                     title: "Total registrations",
-                    value: rows.length,
+                    value: totals?.total ?? 0,
                     icon: Users,
                   },
                   {
                     title: "Verified payments",
-                    value: verified.length,
+                    value: totals?.verified ?? 0,
                     icon: CheckCircle2,
                   },
                   {
                     title: "Pending payments",
-                    value: pending.length,
+                    value: totals?.pending ?? 0,
                     icon: Clock3,
                   },
-                  { title: "Allocated", value: allocated.length, icon: Layers },
+                  { title: "Allocated", value: totals?.allocated ?? 0, icon: Layers },
                   {
                     title: "Paid, unallocated",
-                    value: unallocated.length,
+                    value: totals?.unallocated ?? 0,
                     icon: AlertCircle,
                   },
                 ].map((s) => (
@@ -611,8 +617,7 @@ export function AdminWorkspace({ section }: { section: Section }) {
                 <span>
                   Edit the ordered portfolio lists below. Before importing live
                   registrations, review every committee and set{" "}
-                  <code>{event?.matrixApprovalEnvKey}=true</code> in Vercel and{" "}
-                  <code>MATRIX_APPROVED=true</code> in Apps Script.
+                  <code>{event?.matrixApprovalEnvKey}=true</code> in Vercel.
                 </span>
               </div>
               <div className="admin-committee-grid">

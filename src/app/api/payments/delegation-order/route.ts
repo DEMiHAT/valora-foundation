@@ -6,7 +6,7 @@ import { getEvent } from "@/data/events";
 import { DomainError } from "@/lib/domain";
 import { repository } from "@/lib/repository";
 import { sameOrigin, rate, jsonBody, errorResponse } from "@/lib/http";
-import { createOrder, paymentReady, razorpayConfig, sessionToken } from "@/lib/razorpay";
+import { createOrder, checkoutPolicyText, paymentReady, razorpayConfig, sessionToken } from "@/lib/razorpay";
 import { safelyDrainEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     }
     const order = await createOrder(event, input.students.length);
     const acceptedAt = new Date().toISOString();
-    const policyHash = createHash("sha256").update(process.env.PAYMENT_REFUND_POLICY!).digest("hex");
+    const policyHash = createHash("sha256").update(checkoutPolicyText()).digest("hex");
     const results = await repo.importDelegation(input.students.map((s, i) => ({
       ...s, event_id: event.id, institution: input.school,
       payment_reference: "", payment_confirmation: false,

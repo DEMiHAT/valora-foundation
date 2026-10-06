@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { RegistrationCheckout } from "@/components/registration-checkout";
-import { paymentReady } from "@/lib/razorpay";
+import { paymentReady, paymentMode, checkoutPolicyText } from "@/lib/razorpay";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, Check } from "lucide-react";
 import { getEvent, eventDate, formatFee } from "@/data/events";
@@ -31,7 +31,7 @@ export default async function Registration({
       <section className="section">
         <div className="container registration-grid">
           <div>
-            <RegistrationCheckout event={event} ready={ready} refundPolicy={process.env.PAYMENT_REFUND_POLICY ?? ""} />
+            <RegistrationCheckout event={event} ready={ready} refundPolicy={checkoutPolicyText()} testMode={paymentMode() === "test"} />
           </div>
           <aside className="registration-summary">
             <Link href={`/events/${event.slug}/delegation`} className="school-portal-link">Registering a school group? <strong>Open the delegation portal <ArrowUpRight size={16}/></strong></Link>

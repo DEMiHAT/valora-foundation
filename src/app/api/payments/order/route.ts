@@ -5,7 +5,7 @@ import { getEvent } from "@/data/events";
 import { DomainError } from "@/lib/domain";
 import { repository } from "@/lib/repository";
 import { sameOrigin, rate, jsonBody, errorResponse } from "@/lib/http";
-import { createOrder, paymentReady, razorpayConfig, sessionToken } from "@/lib/razorpay";
+import { createOrder, checkoutPolicyText, paymentReady, razorpayConfig, sessionToken } from "@/lib/razorpay";
 import { safelyDrainEmail } from "@/lib/email";
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     const result = await repo.importRegistration({
       ...input, payment_reference: "", payment_confirmation: false,
       form_response_id: input.request_id ? `checkout:${input.request_id}` : `razorpay:${order.id}`,
-      additional_fields: { gateway_order_id: order.id, gateway_amount: String(order.amount), payment_provider: "razorpay", terms_policy_hash: createHash("sha256").update(process.env.PAYMENT_REFUND_POLICY!).digest("hex"), terms_accepted_at: new Date().toISOString() },
+      additional_fields: { gateway_order_id: order.id, gateway_amount: String(order.amount), payment_provider: "razorpay", terms_policy_hash: createHash("sha256").update(checkoutPolicyText()).digest("hex"), terms_accepted_at: new Date().toISOString() },
     }, "website-checkout");
     const id = result.registration.registration_id;
     after(safelyDrainEmail);

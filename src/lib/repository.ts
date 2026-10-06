@@ -1,5 +1,6 @@
 import "server-only";
 import { siteOrigin } from "./site-origin";
+import { postgresStore } from "./postgres-store";
 import {
   readFile,
   writeFile,
@@ -109,42 +110,43 @@ async function transact<T>(fn: (state: DomainState) => T): Promise<T> {
   }
 }
 class LocalRepository implements Repository {
+  protected transact<T>(fn: (state: DomainState) => T): Promise<T> { return transact(fn); }
   importDelegation(inputs: RegistrationInput[]) {
-    return transact(s => createDelegationRegistrations(s, inputs, events, runtime));
+    return this.transact(s => createDelegationRegistrations(s, inputs, events, runtime));
   }
   settlePayment(payment: CapturedPayment) {
-    return transact(s => settleGatewayPayment(s, payment, events, runtime, appUrl()));
+    return this.transact(s => settleGatewayPayment(s, payment, events, runtime, appUrl()));
   }
   claimEmail() {
-    return transact((s) => claimEmail(s, events, runtime));
+    return this.transact((s) => claimEmail(s, events, runtime));
   }
   finishEmail(
     id: string,
     lease: string,
     result: { sent: boolean; messageId?: string; error?: string }
   ) {
-    return transact((s) => finishEmail(s, id, lease, result, runtime));
+    return this.transact((s) => finishEmail(s, id, lease, result, runtime));
   }
   snapshot() {
-    return transact((s) => s);
+    return this.transact((s) => s);
   }
   importRegistration(input: RegistrationInput, actor: string) {
-    return transact((s) =>
+    return this.transact((s) =>
       createRegistration(s, input, events, runtime, actor)
     );
   }
   command(command: AdminCommand, actor: string) {
-    return transact((s) =>
+    return this.transact((s) =>
       adminCommand(s, command, events, runtime, actor, appUrl())
     );
   }
   verify(token: string, id?: string) {
-    return transact((s) =>
+    return this.transact((s) =>
       publicCredential(s, token, events, runtime.now(), id)
     );
   }
   rateLimit(key: string, limit: number, windowMs: number) {
-    return transact((s) => consumeRate(s, key, limit, windowMs, Date.now()));
+    return this.transact((s) => consumeRate(s, key, limit, windowMs, Date.now()));
   }
   matrix(
     eventId: string,
@@ -155,7 +157,7 @@ class LocalRepository implements Repository {
   ) {
     const event = getEvent(eventId);
     if (!event) throw new DomainError("NOT_FOUND", "Event not found.", 404);
-    return transact((s) =>
+    return this.transact((s) =>
       updateMatrix(s, event, categoryId, portfolios, capacity, runtime, actor)
     );
   }
@@ -261,13 +263,26 @@ class AppsScriptRepository implements Repository {
     });
   }
 }
+class SupabaseRepository extends LocalRepository {
+  protected override transact<T>(fn: (state: DomainState) => T): Promise<T> {
+    return postgresStore().transact(fn);
+  }
+  override snapshot() { return postgresStore().read(); }
+  override verify(token: string, id?: string) {
+    return postgresStore().read().then(state => publicCredential(state, token, events, runtime.now(), id));
+  }
+  override rateLimit(key: string, limit: number, windowMs: number) {
+    return postgresStore().rateLimit(key, limit, windowMs);
+  }
+}
 export function repository(): Repository {
+  if (process.env.DATA_PROVIDER === "supabase") return new SupabaseRepository();
   if (process.env.DATA_PROVIDER === "apps-script")
     return new AppsScriptRepository();
   if (process.env.NODE_ENV === "production")
     throw new DomainError(
       "CONFIG",
-      "Configure the Google Sheets datastore before opening operations.",
+      "Configure the Supabase datastore before opening operations.",
       503
     );
   return new LocalRepository();

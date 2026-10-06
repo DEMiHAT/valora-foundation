@@ -9,3 +9,7 @@
 node_modules
 test-results
 *.tsbuildinfo
+
+.vercel/
+supabase/.temp/
+supabase/.branches/

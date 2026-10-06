@@ -20,11 +20,7 @@ export interface CheckoutSession {
   registration_id: string;
   token: string;
 }
-export function paymentReady(event: FoundationEvent) {
-  return !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET &&
-    process.env.RAZORPAY_WEBHOOK_SECRET && process.env.PAYMENT_REFUND_POLICY &&
-    process.env[event.matrixApprovalEnvKey] === "true");
-}
+export { checkoutConfigured as paymentReady, checkoutPolicyText, paymentMode } from "./payment-configuration";
 export function razorpayConfig() {
   const key = process.env.RAZORPAY_KEY_ID, secret = process.env.RAZORPAY_KEY_SECRET;
   if (!key || !secret) throw new DomainError("PAYMENT_CONFIG", "Online payments are not open yet. Please contact Valora.", 503);
