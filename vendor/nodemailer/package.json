@@ -1,0 +1,22 @@
+{
+  "name": "nodemailer",
+  "version": "8.0.4",
+  "description": "Easy as cake e-mail sending from your Node.js applications",
+  "main": "lib/nodemailer.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nodemailer/nodemailer.git"
+  },
+  "keywords": [
+    "Nodemailer"
+  ],
+  "author": "Andris Reinman",
+  "license": "MIT-0",
+  "bugs": {
+    "url": "https://github.com/nodemailer/nodemailer/issues"
+  },
+  "homepage": "https://nodemailer.com/",
+  "engines": {
+    "node": ">=6.0.0"
+  }
+}

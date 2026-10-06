@@ -1,0 +1,44 @@
+{
+  "name": "valora-foundation",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "npm run build:apps-script && next build --webpack",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build:apps-script && node --import tsx --test --experimental-test-isolation=none tests/*.test.ts",
+    "seed:apps-script": "node --import tsx scripts/export-config.ts",
+    "build:apps-script": "node scripts/build-apps-script.mjs",
+    "setup:local": "node scripts/setup-local.mjs"
+  },
+  "dependencies": {
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "framer-motion": "11.18.2",
+    "lucide-react": "0.460.0",
+    "next": "16.3.4",
+    "nodemailer": "file:vendor/nodemailer",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "sharp": "0.35.4",
+    "tailwind-merge": "2.6.1",
+    "three": "0.186.1",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.2.1",
+    "@types/node": "22.19.19",
+    "@types/nodemailer": "file:vendor/nodemailer-types",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@types/three": "0.186.0",
+    "esbuild": "0.28.0",
+    "tailwindcss": "4.2.1",
+    "tsx": "4.22.1",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=22.22.0 <25"
+  }
+}

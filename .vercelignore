@@ -1,0 +1,11 @@
+.env*
+.data
+.git
+.agents
+.codex
+.aws
+.idea
+.next
+node_modules
+test-results
+*.tsbuildinfo
