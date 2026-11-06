@@ -2617,6 +2617,85 @@ em {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Volunteer registration and digital card */
+.volunteer-overview { background: #f6f3eb; }
+.volunteer-overview-grid,.volunteer-registration-grid,.volunteer-home-inner,.volunteer-credential-page { display:grid; grid-template-columns:minmax(0,.85fr) minmax(0,1.35fr); gap:clamp(40px,7vw,100px); align-items:start; }
+.volunteer-live-count { display:flex; flex-direction:column; margin:24px 0 12px; }
+.volunteer-count-number { font-family:var(--font-serif,Georgia,serif); color:#650b25; font-size:clamp(72px,10vw,138px); line-height:.78; font-weight:400; }
+.volunteer-live-count span { margin-top:18px; font-size:12px; letter-spacing:2px; text-transform:uppercase; }
+.volunteer-benefits { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1px; background:#d9d4c4; border:1px solid #d9d4c4; }
+.volunteer-benefits>div { background:#fff; padding:30px; min-height:190px; }
+.volunteer-benefits svg { color:#650b25; }
+.volunteer-benefits h3 { font-size:20px; margin:20px 0 8px; }
+.volunteer-benefits p { margin:0; font-size:14px; }
+.volunteer-form { background:#fff; padding:clamp(26px,4vw,54px); border:1px solid #ded9ca; box-shadow:0 24px 60px #4312260c; }
+.volunteer-form-heading { margin-bottom:34px; }
+.volunteer-form-heading h2 { margin:12px 0; font-size:clamp(34px,4vw,52px); }
+.volunteer-form label,.volunteer-form legend { display:block; font-size:13px; font-weight:700; letter-spacing:.02em; }
+.volunteer-form input:not([type="checkbox"]),.volunteer-form select { width:100%; min-height:54px; margin-top:9px; border:1px solid #cfc9bb; background:#fbfaf6; padding:0 16px; color:#201e1a; font:inherit; }
+.volunteer-form input:focus,.volunteer-form select:focus { outline:2px solid #c5a35a; outline-offset:2px; }
+.volunteer-field-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:22px; }
+.volunteer-form fieldset { border:0; padding:0; margin:34px 0 26px; }
+.volunteer-form legend small { display:block; margin-top:6px; color:#777268; font-weight:400; }
+.volunteer-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:16px; }
+.volunteer-options label { display:flex; align-items:center; gap:12px; min-height:54px; padding:12px 14px; border:1px solid #d7d2c5; cursor:pointer; font-weight:500; }
+.volunteer-options label.is-selected { border-color:#650b25; background:#f8eff2; color:#650b25; }
+.volunteer-options input,.volunteer-consent input { width:18px; height:18px; accent-color:#650b25; flex:0 0 auto; }
+.volunteer-consent { display:flex!important; align-items:flex-start; gap:11px; margin:8px 0 24px; font-weight:400!important; line-height:1.6; }
+.volunteer-consent a { color:#650b25; text-decoration:underline; }
+.volunteer-honeypot { position:absolute!important; left:-9999px; }
+.volunteer-form .button { border:0; cursor:pointer; display:inline-flex; align-items:center; gap:10px; }
+.volunteer-form .button:disabled { opacity:.5; cursor:not-allowed; }
+.form-error { color:#a11930; background:#fff1f2; padding:12px 14px; font-size:14px; }
+.volunteer-success { background:#fff; padding:clamp(36px,6vw,70px); border-top:5px solid #1d7952; text-align:center; }
+.volunteer-success>svg { color:#1d7952; }
+.volunteer-success h2 { margin:18px 0; }
+.volunteer-program-card { position:sticky; top:110px; background:#102f55; color:#fff; padding:clamp(30px,4vw,48px); }
+.volunteer-program-card .micro-label { color:#f0ca4f; }
+.volunteer-program-card h2 { font-size:clamp(32px,4vw,48px); margin:20px 0; }
+.volunteer-program-card p,.volunteer-program-card li { color:#dce5ee; }
+.volunteer-program-card ul { padding-left:20px; line-height:2; }
+.volunteer-home-banner { background:#102f55; color:#fff; }
+.volunteer-home-banner .eyebrow { color:#f0ca4f; }
+.volunteer-home-banner .volunteer-count-number { color:#f0ca4f; font-size:inherit; line-height:inherit; }
+.volunteer-home-banner p { color:#dce5ee; max-width:470px; }
+.volunteer-home-banner .text-link { color:#fff; }
+.volunteer-digital-card { border-radius:24px; overflow:hidden; background:#102f55; color:#fff; box-shadow:0 28px 70px #071d3d35; }
+.volunteer-card-brand { display:flex; align-items:center; gap:16px; padding:28px 32px; border-bottom:1px solid #7188a2; }
+.volunteer-card-brand img { background:#f0ca4f; border-radius:13px; padding:7px; }
+.volunteer-card-brand div { display:flex; flex-direction:column; flex:1; }
+.volunteer-card-brand strong { font-size:22px; }
+.volunteer-card-brand span { color:#d9e2ec; letter-spacing:2px; font-size:11px; margin-top:5px; }
+.volunteer-card-content { padding:34px 38px 28px; }
+.volunteer-card-kicker { color:#f0ca4f; font-size:12px; letter-spacing:2px; }
+.volunteer-card-content h2 { font-size:clamp(32px,4vw,48px); margin:18px 0 8px; color:#fff; }
+.volunteer-card-content>p { color:#d9e2ec; }
+.volunteer-card-data { display:grid; grid-template-columns:1fr 1fr; gap:20px; padding:28px 0; border-block:1px solid #7188a2; }
+.volunteer-card-data div { display:flex; flex-direction:column; gap:8px; }
+.volunteer-card-data span,.volunteer-card-qr span { font-size:11px; letter-spacing:2px; color:#b8c8d8; }
+.volunteer-card-data strong { font-size:19px; }
+.volunteer-card-qr { display:grid; grid-template-columns:1fr 150px; gap:24px; align-items:center; padding:28px 0; }
+.volunteer-card-qr p { color:#fff; line-height:1.7; }
+.volunteer-card-qr>div:last-child { background:#fff; padding:7px; text-align:center; border-radius:12px; }
+.volunteer-card-qr small { color:#102f55; font-size:9px; letter-spacing:1px; }
+.volunteer-card-content footer { color:#f0ca4f; border-top:1px solid #7188a2; padding-top:22px; font-size:18px; }
+
+@media (max-width: 800px) {
+  .volunteer-overview-grid,.volunteer-registration-grid,.volunteer-home-inner,.volunteer-credential-page { grid-template-columns:1fr; }
+  .volunteer-field-grid,.volunteer-options { grid-template-columns:1fr; }
+  .volunteer-program-card { position:static; }
+}
+@media (max-width: 520px) {
+  .volunteer-benefits { grid-template-columns:1fr; }
+  .volunteer-form { padding:24px 18px; }
+  .volunteer-card-brand { padding:20px; }
+  .volunteer-card-brand strong { font-size:16px; }
+  .volunteer-card-content { padding:28px 20px 22px; }
+  .volunteer-card-data { grid-template-columns:1fr; }
+  .volunteer-card-qr { grid-template-columns:1fr; }
+  .volunteer-card-qr>div:last-child { width:154px; }
+}
 /* Organiser workspace */
 .admin-app {
   display: flex;

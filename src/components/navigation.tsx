@@ -8,6 +8,7 @@ const links = [
   ["About", "/about"],
   ["Initiatives", "/initiatives"],
   ["Events", "/events"],
+  ["Volunteer", "/volunteer"],
   ["Partners", "/partners"],
   ["Media", "/media"],
   ["Contact", "/contact"],

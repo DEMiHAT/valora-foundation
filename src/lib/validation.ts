@@ -1,4 +1,14 @@
 import { z } from "zod";
+import { volunteerContributionOptions } from "@/data/volunteer-programs";
+export const volunteerSchema = z.object({
+  program_id: z.string().min(1).max(80),
+  name: z.string().trim().min(2).max(120),
+  email: z.string().trim().email().max(254),
+  phone: z.string().trim().min(8).max(25),
+  city: z.string().trim().min(2).max(100),
+  contributions: z.array(z.enum(volunteerContributionOptions)).min(1).max(5),
+  consent: z.literal(true),
+});
 export const registrationSchema = z.object({
   event_id: z.string().min(1).max(100),
   name: z.string().trim().min(2).max(120),

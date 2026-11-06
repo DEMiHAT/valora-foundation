@@ -9,7 +9,7 @@ create table valora_private.app_state (
 );
 insert into valora_private.app_state (environment, state) select environment, '{
   "participants": [], "registrations": [], "allocations": [],
-  "credentials": [], "audit": [], "outbox": [], "counters": {},
+  "credentials": [], "audit": [], "outbox": [], "volunteers": [], "counters": {},
   "rateLimits": {}, "matrices": {}
 }'::jsonb from (values ('test'), ('live')) as modes(environment);
 

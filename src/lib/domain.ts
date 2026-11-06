@@ -10,6 +10,10 @@ import type {
   EventCategory,
   DeliveryEnvelope,
   EmailMessage,
+  VolunteerInput,
+  VolunteerProgram,
+  VolunteerRegistration,
+  PublicVolunteerCredential,
 } from "./models";
 export type DomainState = StoreState & {
   matrices: Record<string, EventCategory[]>;
@@ -33,10 +37,14 @@ export function emptyState(): DomainState {
     credentials: [],
     audit: [],
     outbox: [],
+    volunteers: [],
     counters: {},
     rateLimits: {},
     matrices: {},
   };
+}
+function volunteers(state: DomainState) {
+  return (state.volunteers ??= []);
 }
 function findEvent(events: FoundationEvent[], id: string) {
   const e = events.find((e) => e.id === id);
@@ -644,12 +652,107 @@ export function consumeRate(
   return true;
 }
 
+export function createVolunteer(
+  state: DomainState,
+  input: VolunteerInput,
+  programs: VolunteerProgram[],
+  runtime: Runtime
+): VolunteerRegistration {
+  const program = programs.find((item) => item.id === input.program_id && item.active);
+  if (!program)
+    throw new DomainError("PROGRAM_CLOSED", "Volunteer registration is not open for this programme.", 404);
+  const name = input.name.trim().replace(/\s+/g, " "),
+    emailAddress = input.email.trim().toLowerCase(),
+    phone = input.phone.trim(),
+    city = input.city.trim().replace(/\s+/g, " "),
+    contributions = Array.from(new Set(input.contributions.map((item) => item.trim()).filter(Boolean)));
+  if (name.length < 2 || name.length > 120)
+    throw new DomainError("VOLUNTEER_NAME", "Enter your full name.");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress) || emailAddress.length > 254)
+    throw new DomainError("VOLUNTEER_EMAIL", "Enter a valid email address.");
+  if (!/^[+\d][\d\s()-]{7,24}$/.test(phone))
+    throw new DomainError("VOLUNTEER_PHONE", "Enter a valid phone number.");
+  if (city.length < 2 || city.length > 100)
+    throw new DomainError("VOLUNTEER_CITY", "Enter your city or location.");
+  if (!contributions.length || contributions.length > 5 || contributions.some((item) => item.length > 80))
+    throw new DomainError("VOLUNTEER_CONTRIBUTION", "Select at least one valid way to contribute.");
+  if (!input.consent)
+    throw new DomainError("VOLUNTEER_CONSENT", "Please accept the privacy and volunteer communication consent.");
+  const existing = volunteers(state).find(
+    (item) => item.program_id === program.id && item.email === emailAddress
+  );
+  if (existing) return existing;
+  const sequence = (state.counters.volunteer ?? 0) + 1;
+  state.counters.volunteer = sequence;
+  const volunteer: VolunteerRegistration = {
+    volunteer_id: `VF-${String(sequence).padStart(6, "0")}`,
+    program_id: program.id,
+    name,
+    email: emailAddress,
+    phone,
+    city,
+    contributions,
+    token: runtime.token(),
+    status: "ACTIVE",
+    created_at: runtime.now(),
+  };
+  volunteers(state).push(volunteer);
+  email(
+    state,
+    runtime,
+    `volunteer-card:${volunteer.volunteer_id}`,
+    volunteer.email,
+    `Your ${program.cardTitle} card`,
+    `Hello ${volunteer.name},\n\nThank you for registering with ${program.title}. Your volunteer ID is ${volunteer.volunteer_id}. Your digital volunteer card is attached to this email.\n\nSelected areas: ${volunteer.contributions.join(", ")}\n\nValora Foundation`,
+    { volunteer_id: volunteer.volunteer_id }
+  );
+  return volunteer;
+}
+
+export function publicVolunteerCredential(
+  state: DomainState,
+  token: string,
+  programs: VolunteerProgram[],
+  now: string,
+  id?: string
+): PublicVolunteerCredential | null {
+  const volunteer = volunteers(state).find(
+    (item) => item.token === token && (!id || item.volunteer_id === id)
+  );
+  if (!volunteer) return null;
+  const program = programs.find((item) => item.id === volunteer.program_id);
+  if (!program) return null;
+  return {
+    volunteer_id: volunteer.volunteer_id,
+    program: program.title,
+    cardTitle: program.cardTitle,
+    name: volunteer.name,
+    city: volunteer.city,
+    contributions: volunteer.contributions,
+    status:
+      volunteer.status === "REVOKED"
+        ? "REVOKED"
+        : program.validUntil && new Date(now) > new Date(program.validUntil)
+          ? "EXPIRED"
+          : "ACTIVE",
+    validUntil: program.validUntil,
+  };
+}
+
+export function volunteerCount(state: DomainState, programId?: string) {
+  const active = volunteers(state).filter(
+    (item) => item.status === "ACTIVE" && (!programId || item.program_id === programId)
+  );
+  return new Set(active.map((item) => item.email)).size;
+}
+
 // SMTP delivery is at-least-once: leases prevent concurrent sends. A provider
 // acceptance followed by a datastore outage can still require reconciliation.
 export function claimEmail(
   state: DomainState,
   events: FoundationEvent[],
-  runtime: Runtime
+  runtime: Runtime,
+  volunteerPrograms: VolunteerProgram[] = []
 ): DeliveryEnvelope | null {
   const now = new Date(runtime.now());
   for (const message of state.outbox) {
@@ -675,7 +778,33 @@ export function claimEmail(
       message.last_error = "Payment status has changed.";
       continue;
     }
-    let credential: PublicCredential | undefined, token: string | undefined;
+    let credential: PublicCredential | undefined,
+      volunteerCredential: PublicVolunteerCredential | undefined,
+      token: string | undefined;
+    if (message.volunteer_id) {
+      const volunteer = volunteers(state).find(
+        (item) => item.volunteer_id === message.volunteer_id
+      );
+      if (!volunteer || volunteer.status !== "ACTIVE") {
+        message.status = "SKIPPED";
+        message.last_error = "Volunteer card is no longer active.";
+        continue;
+      }
+      const record = publicVolunteerCredential(
+        state,
+        volunteer.token,
+        volunteerPrograms,
+        runtime.now(),
+        volunteer.volunteer_id
+      );
+      if (!record || record.status !== "ACTIVE") {
+        message.status = "SKIPPED";
+        message.last_error = "Volunteer card is no longer valid.";
+        continue;
+      }
+      volunteerCredential = record;
+      token = volunteer.token;
+    }
     if (message.credential_version != null) {
       const c = state.credentials.find(
         (c) => c.registration_id === message.registration_id
@@ -702,7 +831,7 @@ export function claimEmail(
     message.lease_token = runtime.token();
     message.lease_until = new Date(now.getTime() + 120000).toISOString();
     message.attempts = (message.attempts ?? 0) + 1;
-    return { message: { ...message }, credential, token };
+    return { message: { ...message }, credential, volunteerCredential, token };
   }
   return null;
 }

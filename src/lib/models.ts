@@ -105,6 +105,7 @@ export interface EmailMessage {
   created_at: string;
   sent_at?: string;
   registration_id?: string;
+  volunteer_id?: string;
   credential_version?: number;
   attempts?: number;
   lease_token?: string;
@@ -113,6 +114,46 @@ export interface EmailMessage {
   last_error?: string;
   provider_message_id?: string;
 }
+export interface VolunteerProgram {
+  id: string;
+  slug: string;
+  title: string;
+  cardTitle: string;
+  description: string;
+  active: boolean;
+  validUntil?: string;
+}
+export interface VolunteerRegistration {
+  volunteer_id: string;
+  program_id: string;
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  contributions: string[];
+  token: string;
+  status: "ACTIVE" | "REVOKED";
+  created_at: string;
+}
+export interface VolunteerInput {
+  program_id: string;
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  contributions: string[];
+  consent: boolean;
+}
+export interface PublicVolunteerCredential {
+  volunteer_id: string;
+  program: string;
+  cardTitle: string;
+  name: string;
+  city: string;
+  contributions: string[];
+  status: "ACTIVE" | "REVOKED" | "EXPIRED";
+  validUntil?: string;
+}
 export interface StoreState {
   participants: Participant[];
   registrations: Registration[];
@@ -120,6 +161,7 @@ export interface StoreState {
   credentials: Credential[];
   audit: Audit[];
   outbox: EmailMessage[];
+  volunteers: VolunteerRegistration[];
   counters: Record<string, number>;
   rateLimits: Record<string, { count: number; reset: number }>;
 }
@@ -174,5 +216,6 @@ export interface AdminCommand {
 export interface DeliveryEnvelope {
   message: EmailMessage;
   credential?: PublicCredential;
+  volunteerCredential?: PublicVolunteerCredential;
   token?: string;
 }

@@ -19,6 +19,12 @@ export default function Privacy() {
           </p>
           <h2>Access and storage</h2>
           <p>
+            Volunteer registration collects your name, email, phone number,
+            city or location, selected contribution areas and consent. We use
+            this information to coordinate volunteering, issue your unique
+            volunteer ID and email your digital volunteer card.
+          </p>
+          <p>
             Event operations use a restricted Google Sheet. Organiser access to
             this platform is protected. Digital ID verification shows only the
             participant’s name, event, committee, portfolio, validity and
@@ -35,9 +41,9 @@ export default function Privacy() {
           <h2>Requests about your data</h2>
           <p>
             Contact Valora through the official channels on our contact page to
-            request a correction or discuss removal of your registration
-            information. Organisers will review requests against event and
-            payment record requirements.
+            request a correction or discuss removal of your registration or
+            volunteer information. Organisers will review requests against
+            operational and record-keeping requirements.
           </p>
           <h2>Retention</h2>
           <p>

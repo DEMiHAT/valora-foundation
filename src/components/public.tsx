@@ -114,6 +114,7 @@ export function Footer() {
         <div className="footer-links">
           <span>GET INVOLVED</span>
           <Link href="/events">Explore events</Link>
+          <Link href="/volunteer">Volunteer with us</Link>
           <Link href="/partners">Partner with Valora</Link>
           <Link href="/initiatives">Our initiatives</Link>
           <Link href="/contact">Contact us</Link>

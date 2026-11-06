@@ -13,6 +13,7 @@ import {
 import { randomUUID, randomBytes } from "node:crypto";
 import path from "node:path";
 import { events, getEvent } from "@/data/events";
+import { volunteerPrograms } from "@/data/volunteer-programs";
 import {
   adminCommand,
   settleGatewayPayment,
@@ -26,6 +27,9 @@ import {
   DomainError,
   claimEmail,
   finishEmail,
+  createVolunteer,
+  publicVolunteerCredential,
+  volunteerCount as domainVolunteerCount,
   type DomainState,
   type Runtime,
 } from "./domain";
@@ -35,6 +39,9 @@ import type {
   RegistrationView,
   PublicCredential,
   DeliveryEnvelope,
+  VolunteerInput,
+  VolunteerRegistration,
+  PublicVolunteerCredential,
 } from "./models";
 const runtime: Runtime = {
   uuid: randomUUID,
@@ -65,6 +72,9 @@ export interface Repository {
     capacity: number,
     actor: string
   ): Promise<void>;
+  registerVolunteer(input: VolunteerInput): Promise<VolunteerRegistration>;
+  verifyVolunteer(token: string, id?: string): Promise<PublicVolunteerCredential | null>;
+  countVolunteers(programId?: string): Promise<number>;
 }
 const file = path.join(process.cwd(), ".data", "state.json");
 async function readState(): Promise<DomainState> {
@@ -118,7 +128,7 @@ class LocalRepository implements Repository {
     return this.transact(s => settleGatewayPayment(s, payment, events, runtime, appUrl()));
   }
   claimEmail() {
-    return this.transact((s) => claimEmail(s, events, runtime));
+    return this.transact((s) => claimEmail(s, events, runtime, volunteerPrograms));
   }
   finishEmail(
     id: string,
@@ -160,6 +170,17 @@ class LocalRepository implements Repository {
     return this.transact((s) =>
       updateMatrix(s, event, categoryId, portfolios, capacity, runtime, actor)
     );
+  }
+  registerVolunteer(input: VolunteerInput) {
+    return this.transact((s) => createVolunteer(s, input, volunteerPrograms, runtime));
+  }
+  verifyVolunteer(token: string, id?: string) {
+    return this.transact((s) =>
+      publicVolunteerCredential(s, token, volunteerPrograms, runtime.now(), id)
+    );
+  }
+  countVolunteers(programId?: string) {
+    return this.transact((s) => domainVolunteerCount(s, programId));
   }
 }
 export function appUrl() {
@@ -212,6 +233,7 @@ class AppsScriptRepository implements Repository {
         action,
         payload,
         events,
+        volunteerPrograms,
         appUrl: appUrl(),
       }),
       cache: "no-store",
@@ -262,6 +284,15 @@ class AppsScriptRepository implements Repository {
       actor,
     });
   }
+  registerVolunteer(input: VolunteerInput) {
+    return this.call<VolunteerRegistration>("volunteer-register", { input });
+  }
+  verifyVolunteer(token: string, id?: string) {
+    return this.call<PublicVolunteerCredential | null>("volunteer-verify", { token, id });
+  }
+  countVolunteers(programId?: string) {
+    return this.call<number>("volunteer-count", { programId });
+  }
 }
 class SupabaseRepository extends LocalRepository {
   protected override transact<T>(fn: (state: DomainState) => T): Promise<T> {
@@ -273,6 +304,14 @@ class SupabaseRepository extends LocalRepository {
   }
   override rateLimit(key: string, limit: number, windowMs: number) {
     return postgresStore().rateLimit(key, limit, windowMs);
+  }
+  override verifyVolunteer(token: string, id?: string) {
+    return postgresStore().read().then((state) =>
+      publicVolunteerCredential(state, token, volunteerPrograms, runtime.now(), id)
+    );
+  }
+  override countVolunteers(programId?: string) {
+    return postgresStore().read().then((state) => domainVolunteerCount(state, programId));
   }
 }
 export function repository(): Repository {

@@ -2,6 +2,7 @@ import type { SendMailOptions } from "nodemailer";
 import { createHash } from "node:crypto";
 import type { DeliveryEnvelope } from "./models";
 import { escapeHtml, renderEcard } from "./ecard";
+import { renderVolunteerCard } from "./volunteer-card";
 export interface EmailTransport {
   send(message: SendMailOptions): Promise<{ messageId: string }>;
 }
@@ -10,7 +11,7 @@ export async function buildEmail(
   origin: string,
   from: string
 ): Promise<SendMailOptions> {
-  const { message, credential, token } = envelope;
+  const { message, credential, volunteerCredential, token } = envelope;
   const host = new URL(origin).hostname;
   const id = createHash("sha256").update(message.id).digest("hex");
   const mail: SendMailOptions = {
@@ -24,7 +25,19 @@ export async function buildEmail(
   };
   const footer =
     '<p style="font-size:12px;color:#75756d;margin-top:28px">Knowledge. Growth. Empathy.<br>Valora Foundation</p>';
-  if (credential && token) {
+  if (volunteerCredential && token) {
+    const cardUrl = origin + "/volunteer/id/" + encodeURIComponent(token),
+      verifyUrl = origin + "/volunteer/verify/" + encodeURIComponent(volunteerCredential.volunteer_id) + "?token=" + encodeURIComponent(token),
+      png = await renderVolunteerCard(volunteerCredential, verifyUrl);
+    mail.html = `<div style="background:#eef2f6;padding:24px;font-family:Arial,sans-serif"><div style="max-width:580px;margin:auto;background:#fff"><div style="background:#102f55;padding:27px;color:#f0ca4f;font-size:27px;font-weight:700">VALORA FOUNDATION</div><div style="padding:30px"><h1 style="color:#102f55;font-size:28px">Your volunteer card is ready.</h1><p>Hello ${escapeHtml(volunteerCredential.name)},</p><p>Thank you for joining <strong>${escapeHtml(volunteerCredential.program)}</strong>. Your unique volunteer ID is <strong>${escapeHtml(volunteerCredential.volunteer_id)}</strong>.</p><p><a href="${escapeHtml(cardUrl)}" style="display:inline-block;background:#102f55;color:white;text-decoration:none;padding:14px 22px">View your volunteer card</a></p><p style="font-size:13px;color:#666;line-height:1.8">Your digital card is attached. Keep the private card link safe; its QR verifies your active volunteer registration.</p><img src="cid:valora-volunteer-card" alt="Your Valora volunteer card" width="440" style="width:100%;max-width:440px;height:auto;display:block">${footer}</div></div></div>`;
+    mail.attachments = [{
+      filename: `${volunteerCredential.volunteer_id}-volunteer-card.png`,
+      content: png,
+      contentType: "image/png",
+      cid: "valora-volunteer-card",
+      contentDisposition: "attachment",
+    }];
+  } else if (credential && token) {
     const cardUrl = origin + "/id/" + encodeURIComponent(token),
       verifyUrl =
         origin +

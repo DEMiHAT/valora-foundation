@@ -60,6 +60,7 @@ var PROJECTION_HEADERS = {
     "provider_message_id",
   ],
   Audit: ["id", "action", "registration_id", "actor", "at", "detail"],
+  Volunteers: ["volunteer_id", "program_id", "name", "email", "phone", "city", "contributions", "status", "created_at"],
   ImportErrors: ["response_id", "event_id", "error", "created_at", "resolved"],
 };
 function properties_() {
@@ -165,6 +166,7 @@ function doPost(e) {
       var state = readState_(),
         p = request.payload || {},
         events = request.events || VALORA_EVENTS,
+        volunteerPrograms = request.volunteerPrograms || [],
         runtime = runtime_(),
         origin = request.appUrl || origin_(),
         data,
@@ -182,6 +184,28 @@ function doPost(e) {
             runtime.now(),
             p.id
           );
+          write = false;
+          break;
+        case "volunteer-register":
+          data = ValoraDomain.createVolunteer(
+            state,
+            ValoraDomain.volunteerSchema.parse(p.input),
+            volunteerPrograms,
+            runtime
+          );
+          break;
+        case "volunteer-verify":
+          data = ValoraDomain.publicVolunteerCredential(
+            state,
+            p.token,
+            volunteerPrograms,
+            runtime.now(),
+            p.id
+          );
+          write = false;
+          break;
+        case "volunteer-count":
+          data = ValoraDomain.volunteerCount(state, p.programId);
           write = false;
           break;
         case "rate":
@@ -269,7 +293,7 @@ function doPost(e) {
           data = null;
           break;
         case "email-claim":
-          data = ValoraDomain.claimEmail(state, events, runtime);
+          data = ValoraDomain.claimEmail(state, events, runtime, volunteerPrograms);
           break;
         case "email-finish":
           ValoraDomain.finishEmail(state, p.id, p.lease, p.result, runtime);
@@ -426,6 +450,7 @@ function project_(state, events) {
   replaceRows_("Credentials", state.credentials);
   replaceRows_("Outbox", state.outbox);
   replaceRows_("Audit", state.audit);
+  replaceRows_("Volunteers", state.volunteers || []);
   var committees = [],
     portfolios = [];
   events.forEach(function (event) {

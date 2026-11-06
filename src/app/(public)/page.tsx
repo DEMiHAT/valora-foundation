@@ -4,6 +4,7 @@ import { OrbitalHero } from "@/components/orbital-hero";
 import { publishedSplineUrl } from "@/lib/spline";
 import { Eyebrow, TextLink, InitiativeCards, CTA } from "@/components/public";
 import { Reveal } from "@/components/reveal";
+import { VolunteerCount } from "@/components/volunteer-count";
 
 export default function Home() {
   return (
@@ -22,6 +23,12 @@ export default function Home() {
             <p>We create spaces for dialogue, practical learning and community participation.</p>
             <TextLink href="/about">About the foundation</TextLink>
           </Reveal>
+        </div>
+      </section>
+      <section className="section volunteer-home-banner">
+        <div className="container volunteer-home-inner">
+          <div><Eyebrow>VOLUNTEER COMMUNITY</Eyebrow><h2><VolunteerCount /> people ready<br/><em>to make an impact.</em></h2></div>
+          <div><p>Join Valora’s growing volunteer community and receive your secure digital volunteer card automatically by email.</p><TextLink href="/volunteer">Become a volunteer</TextLink></div>
         </div>
       </section>
       <section className="section initiatives-section">

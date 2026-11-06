@@ -32,13 +32,17 @@ var ValoraDomain = (() => {
     consumeRate: () => consumeRate,
     createDelegationRegistrations: () => createDelegationRegistrations,
     createRegistration: () => createRegistration,
+    createVolunteer: () => createVolunteer,
     emptyState: () => emptyState,
     finishEmail: () => finishEmail,
     publicCredential: () => publicCredential,
+    publicVolunteerCredential: () => publicVolunteerCredential,
     registrationSchema: () => registrationSchema,
     settleGatewayPayment: () => settleGatewayPayment,
     updateMatrix: () => updateMatrix,
-    view: () => view
+    view: () => view,
+    volunteerCount: () => volunteerCount,
+    volunteerSchema: () => volunteerSchema
   });
 
   // src/lib/payments.ts
@@ -70,10 +74,14 @@ var ValoraDomain = (() => {
       credentials: [],
       audit: [],
       outbox: [],
+      volunteers: [],
       counters: {},
       rateLimits: {},
       matrices: {}
     };
+  }
+  function volunteers(state) {
+    return state.volunteers ?? (state.volunteers = []);
   }
   function findEvent(events, id) {
     const e = events.find((e2) => e2.id === id);
@@ -547,7 +555,84 @@ Valora Foundation`,
       if (v.reset <= now) delete state.rateLimits[k];
     return true;
   }
-  function claimEmail(state, events, runtime) {
+  function createVolunteer(state, input, programs, runtime) {
+    const program = programs.find((item) => item.id === input.program_id && item.active);
+    if (!program)
+      throw new DomainError("PROGRAM_CLOSED", "Volunteer registration is not open for this programme.", 404);
+    const name = input.name.trim().replace(/\s+/g, " "), emailAddress = input.email.trim().toLowerCase(), phone = input.phone.trim(), city = input.city.trim().replace(/\s+/g, " "), contributions = Array.from(new Set(input.contributions.map((item) => item.trim()).filter(Boolean)));
+    if (name.length < 2 || name.length > 120)
+      throw new DomainError("VOLUNTEER_NAME", "Enter your full name.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress) || emailAddress.length > 254)
+      throw new DomainError("VOLUNTEER_EMAIL", "Enter a valid email address.");
+    if (!/^[+\d][\d\s()-]{7,24}$/.test(phone))
+      throw new DomainError("VOLUNTEER_PHONE", "Enter a valid phone number.");
+    if (city.length < 2 || city.length > 100)
+      throw new DomainError("VOLUNTEER_CITY", "Enter your city or location.");
+    if (!contributions.length || contributions.length > 5 || contributions.some((item) => item.length > 80))
+      throw new DomainError("VOLUNTEER_CONTRIBUTION", "Select at least one valid way to contribute.");
+    if (!input.consent)
+      throw new DomainError("VOLUNTEER_CONSENT", "Please accept the privacy and volunteer communication consent.");
+    const existing = volunteers(state).find(
+      (item) => item.program_id === program.id && item.email === emailAddress
+    );
+    if (existing) return existing;
+    const sequence = (state.counters.volunteer ?? 0) + 1;
+    state.counters.volunteer = sequence;
+    const volunteer = {
+      volunteer_id: `VF-${String(sequence).padStart(6, "0")}`,
+      program_id: program.id,
+      name,
+      email: emailAddress,
+      phone,
+      city,
+      contributions,
+      token: runtime.token(),
+      status: "ACTIVE",
+      created_at: runtime.now()
+    };
+    volunteers(state).push(volunteer);
+    email(
+      state,
+      runtime,
+      `volunteer-card:${volunteer.volunteer_id}`,
+      volunteer.email,
+      `Your ${program.cardTitle} card`,
+      `Hello ${volunteer.name},
+
+Thank you for registering with ${program.title}. Your volunteer ID is ${volunteer.volunteer_id}. Your digital volunteer card is attached to this email.
+
+Selected areas: ${volunteer.contributions.join(", ")}
+
+Valora Foundation`,
+      { volunteer_id: volunteer.volunteer_id }
+    );
+    return volunteer;
+  }
+  function publicVolunteerCredential(state, token, programs, now, id) {
+    const volunteer = volunteers(state).find(
+      (item) => item.token === token && (!id || item.volunteer_id === id)
+    );
+    if (!volunteer) return null;
+    const program = programs.find((item) => item.id === volunteer.program_id);
+    if (!program) return null;
+    return {
+      volunteer_id: volunteer.volunteer_id,
+      program: program.title,
+      cardTitle: program.cardTitle,
+      name: volunteer.name,
+      city: volunteer.city,
+      contributions: volunteer.contributions,
+      status: volunteer.status === "REVOKED" ? "REVOKED" : program.validUntil && new Date(now) > new Date(program.validUntil) ? "EXPIRED" : "ACTIVE",
+      validUntil: program.validUntil
+    };
+  }
+  function volunteerCount(state, programId) {
+    const active = volunteers(state).filter(
+      (item) => item.status === "ACTIVE" && (!programId || item.program_id === programId)
+    );
+    return new Set(active.map((item) => item.email)).size;
+  }
+  function claimEmail(state, events, runtime, volunteerPrograms = []) {
     const now = new Date(runtime.now());
     for (const message of state.outbox) {
       if (message.status === "SENT" || message.status === "SKIPPED") continue;
@@ -566,7 +651,31 @@ Valora Foundation`,
         message.last_error = "Payment status has changed.";
         continue;
       }
-      let credential, token;
+      let credential, volunteerCredential, token;
+      if (message.volunteer_id) {
+        const volunteer = volunteers(state).find(
+          (item) => item.volunteer_id === message.volunteer_id
+        );
+        if (!volunteer || volunteer.status !== "ACTIVE") {
+          message.status = "SKIPPED";
+          message.last_error = "Volunteer card is no longer active.";
+          continue;
+        }
+        const record = publicVolunteerCredential(
+          state,
+          volunteer.token,
+          volunteerPrograms,
+          runtime.now(),
+          volunteer.volunteer_id
+        );
+        if (!record || record.status !== "ACTIVE") {
+          message.status = "SKIPPED";
+          message.last_error = "Volunteer card is no longer valid.";
+          continue;
+        }
+        volunteerCredential = record;
+        token = volunteer.token;
+      }
       if (message.credential_version != null) {
         const c = state.credentials.find(
           (c2) => c2.registration_id === message.registration_id
@@ -589,7 +698,7 @@ Valora Foundation`,
       message.lease_token = runtime.token();
       message.lease_until = new Date(now.getTime() + 12e4).toISOString();
       message.attempts = (message.attempts ?? 0) + 1;
-      return { message: { ...message }, credential, token };
+      return { message: { ...message }, credential, volunteerCredential, token };
     }
     return null;
   }
@@ -640,7 +749,7 @@ Valora Foundation`,
     return view(state, registration.registration_id);
   }
 
-  // node_modules/zod/v3/external.js
+  // ../valora/node_modules/zod/v3/external.js
   var external_exports = {};
   __export(external_exports, {
     BRAND: () => BRAND,
@@ -752,7 +861,7 @@ Valora Foundation`,
     void: () => voidType
   });
 
-  // node_modules/zod/v3/helpers/util.js
+  // ../valora/node_modules/zod/v3/helpers/util.js
   var util;
   (function(util2) {
     util2.assertEqual = (_) => {
@@ -886,7 +995,7 @@ Valora Foundation`,
     }
   };
 
-  // node_modules/zod/v3/ZodError.js
+  // ../valora/node_modules/zod/v3/ZodError.js
   var ZodIssueCode = util.arrayToEnum([
     "invalid_type",
     "invalid_literal",
@@ -1004,7 +1113,7 @@ Valora Foundation`,
     return error;
   };
 
-  // node_modules/zod/v3/locales/en.js
+  // ../valora/node_modules/zod/v3/locales/en.js
   var errorMap = (issue, _ctx) => {
     let message;
     switch (issue.code) {
@@ -1107,7 +1216,7 @@ Valora Foundation`,
   };
   var en_default = errorMap;
 
-  // node_modules/zod/v3/errors.js
+  // ../valora/node_modules/zod/v3/errors.js
   var overrideErrorMap = en_default;
   function setErrorMap(map) {
     overrideErrorMap = map;
@@ -1116,7 +1225,7 @@ Valora Foundation`,
     return overrideErrorMap;
   }
 
-  // node_modules/zod/v3/helpers/parseUtil.js
+  // ../valora/node_modules/zod/v3/helpers/parseUtil.js
   var makeIssue = (params) => {
     const { data, path, errorMaps, issueData } = params;
     const fullPath = [...path, ...issueData.path || []];
@@ -1226,14 +1335,14 @@ Valora Foundation`,
   var isValid = (x) => x.status === "valid";
   var isAsync = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 
-  // node_modules/zod/v3/helpers/errorUtil.js
+  // ../valora/node_modules/zod/v3/helpers/errorUtil.js
   var errorUtil;
   (function(errorUtil2) {
     errorUtil2.errToObj = (message) => typeof message === "string" ? { message } : message || {};
     errorUtil2.toString = (message) => typeof message === "string" ? message : message?.message;
   })(errorUtil || (errorUtil = {}));
 
-  // node_modules/zod/v3/types.js
+  // ../valora/node_modules/zod/v3/types.js
   var ParseInputLazyPath = class {
     constructor(parent, value, path, key) {
       this._cachedPath = [];
@@ -4681,7 +4790,25 @@ Valora Foundation`,
   };
   var NEVER = INVALID;
 
+  // src/data/volunteer-programs.ts
+  var volunteerContributionOptions = [
+    "Spreading awareness",
+    "Social media and outreach",
+    "Event volunteering",
+    "Education and community initiatives",
+    "Fundraising and partnerships"
+  ];
+
   // src/lib/validation.ts
+  var volunteerSchema = external_exports.object({
+    program_id: external_exports.string().min(1).max(80),
+    name: external_exports.string().trim().min(2).max(120),
+    email: external_exports.string().trim().email().max(254),
+    phone: external_exports.string().trim().min(8).max(25),
+    city: external_exports.string().trim().min(2).max(100),
+    contributions: external_exports.array(external_exports.enum(volunteerContributionOptions)).min(1).max(5),
+    consent: external_exports.literal(true)
+  });
   var registrationSchema = external_exports.object({
     event_id: external_exports.string().min(1).max(100),
     name: external_exports.string().trim().min(2).max(120),

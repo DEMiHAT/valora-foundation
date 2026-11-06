@@ -100,6 +100,14 @@ For imported Google Forms responses and automatic retry, configure `CRON_SECRET`
 
 The outbox uses leases, stable message IDs, bounded retries and backoff. Replaced/revoked/expired E-cards are skipped. Delivery is **at-least-once**: if the SMTP server accepts a message but the final datastore acknowledgement fails, a retry can deliver a duplicate. Allocation and credential issuance remain idempotent. Explicit organiser resends are recorded without discarding the original sent-message history.
 
+## Volunteer registration and cards
+
+`/volunteer` provides a public volunteer registration form, a live count of unique active volunteers and automatic digital card delivery. Each registration receives a sequential `VF-000001`-style ID, a private 64-character QR token and a 900×1120 PNG card. The QR opens a limited public verification page; email and phone details are never shown there. Duplicate submissions for the same email and programme return the existing volunteer record without increasing the public count or queuing another card.
+
+Volunteer programmes and future event-specific choices live in `src/data/volunteer-programs.ts`. Add one object per event or programme with a unique `id` and `slug`; set `active: false` to close new registrations. An optional `validUntil` makes cards expire automatically. Rebuild and redeploy the Apps Script bundle after changing the configuration when `DATA_PROVIDER=apps-script`.
+
+Card email uses the same SMTP outbox as delegate E-cards. With `EMAIL_PROVIDER=nodemailer` and the existing SMTP variables configured, the registration route commits the volunteer first and then uses Next.js `after()` to drain the queue. If SMTP is temporarily unavailable, the card remains queued for the authenticated email worker or organiser retry flow.
+
 ## Content and future events
 
 - `src/data/foundation.ts`: mission, initiatives, team, partners, media and announcements. Leadership and partner arrays are empty until confirmed. Future programme descriptions are marked as forthcoming.
@@ -123,7 +131,7 @@ Draft matrices must be reviewed before live import. Set `VALORA_MUN_MATRIX_APPRO
 
 `Repository` in `src/lib/repository.ts` isolates persistence. `src/lib/domain.ts` contains event-agnostic business rules. The generated `apps-script/Domain.gs` bundles the **same** implementation and boundary validators, so Sheets and local development do not diverge. The Supabase adapter uses PostgreSQL transactions and row locking around domain operations; public/frontend contracts remain unchanged. `PaymentProvider` and `EmailTransport` isolate later provider changes.
 
-The visible Sheets tabs are Participants, Registrations, Committees, Portfolios, Allocations, Credentials, Outbox and Audit. Portfolios include `event_id` so committees with the same ID in two events remain isolated. Do not edit projected tabs directly: use the dashboard. A protected hidden `_State` snapshot is authoritative. See the Apps Script guide for backups and recovery.
+The visible Sheets tabs are Participants, Registrations, Volunteers, Committees, Portfolios, Allocations, Credentials, Outbox and Audit. Portfolios include `event_id` so committees with the same ID in two events remain isolated. Do not edit projected tabs directly: use the dashboard. A protected hidden `_State` snapshot is authoritative. See the Apps Script guide for backups and recovery.
 
 ## Deployment: Vercel + Cloudflare
 
