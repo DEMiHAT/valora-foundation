@@ -16,8 +16,8 @@ export default function About() {
             <Eyebrow>OUR WORK</Eyebrow>
             <h2>Learning and<br /><em>leadership.</em></h2>
             <p className="lead-text">Valora Foundation is a new organisation creating opportunities for young people to learn, debate and lead.</p>
-            <p>Our inaugural event, Valora MUN, takes place on 14 November 2026. Delegates practise debate and negotiation across six committees, with two training sessions included.</p>
-            <TextLink href="/events/valora-mun">Explore Valora MUN</TextLink>
+            <p>We are developing programmes that help young people practise dialogue, build confidence and contribute meaningfully to their communities.</p>
+            <TextLink href="/initiatives">Explore our initiatives</TextLink>
           </div>
         </div>
       </section>

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     template: "%s | Valora Foundation",
   },
   description:
-    "A new foundation empowering individuals to learn, grow, lead with empathy and create meaningful community impact. Discover Valora MUN 2026.",
+    "A foundation helping young people learn, grow, lead with empathy and create meaningful community impact.",
   icons: { icon: "/favicon.svg" },
 };
 export default function RootLayout({

@@ -13,7 +13,7 @@ export default function Contact() {
             Contact Valora.
           </>
         }
-        description="Event questions, school participation and partnership enquiries."
+        description="Questions, programme ideas and partnership enquiries."
       />
       <section className="section">
         <div className="container contact-grid">
@@ -45,12 +45,12 @@ export default function Contact() {
           </div>
           <div className="contact-note">
             <h3>
-              Valora MUN questions
+              Work with Valora
             </h3>
             <p>
-              Find committees, fees and FAQs on the event page.
+              Contact the team about learning programmes, community initiatives or partnerships.
             </p>
-            <TextLink href="/events/valora-mun">Visit the event page</TextLink>
+            <TextLink href="/partners">Explore partnerships</TextLink>
             <p className="small-note">
               If you’ve registered, include your registration reference when
               contacting the team. Please don’t share payment receipts or

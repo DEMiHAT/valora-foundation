@@ -46,21 +46,20 @@ export default function Media() {
           </div>
         </div>
       </section>
-      <section className="section initiatives-section">
-        <div className="container">
-          <SectionHeading eyebrow="EVENT NEWS" title="Announcements" />
-          {foundation.announcements.map((a) => (
-            <Link className="news-row" href={a.href} key={a.id}>
-              <span>{a.date}</span>
-              <div>
-                <h3>{a.title}</h3>
-                <p>{a.description}</p>
-              </div>
-              <ArrowUpRight />
-            </Link>
-          ))}
-        </div>
-      </section>
+      {foundation.announcements.length > 0 && (
+        <section className="section initiatives-section">
+          <div className="container">
+            <SectionHeading eyebrow="FOUNDATION NEWS" title="Announcements" />
+            {foundation.announcements.map((a) => (
+              <Link className="news-row" href={a.href} key={a.id}>
+                <span>{a.date}</span>
+                <div><h3>{a.title}</h3><p>{a.description}</p></div>
+                <ArrowUpRight />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </>
   );
 }

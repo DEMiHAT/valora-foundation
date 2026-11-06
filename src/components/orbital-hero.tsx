@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowUpRight, Sprout, Globe2, Heart, BookOpen } from "lucide-react";
+import { ArrowUpRight, Sprout, Heart, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { SculptureScene, type SculptureVariant } from "./sculpture-scene";
 
@@ -22,12 +22,11 @@ export function OrbitalHero({ sceneUrl }: { sceneUrl?: string }) {
         <div className="orbit-copy">
           <span className="live-label">KNOWLEDGE. GROWTH. EMPATHY.</span>
           <h1>Valora<br /><em>Foundation.</em></h1>
-          <p>Learning and leadership for young people.<br />Introducing Valora MUN, our inaugural conference.</p>
+          <p>Learning and leadership opportunities for young people, guided by knowledge, growth and empathy.</p>
           <div className="hero-actions">
-            <Link href="/events/valora-mun/register" className="button button-gold">Register for MUN <ArrowUpRight size={20} /></Link>
-            <Link href="/events/valora-mun/delegation" className="orbit-text-link">Bring your school <ArrowUpRight size={17} /></Link>
+            <Link href="/about" className="button button-gold">About Valora <ArrowUpRight size={20} /></Link>
+            <Link href="/contact" className="orbit-text-link">Work with us <ArrowUpRight size={17} /></Link>
           </div>
-          <div className="hero-mini-ticket"><Globe2 size={23} /><div><strong>VALORA MUN ’26</strong><span>14 November 2026 · Six committees</span></div><Link href="/events/valora-mun" aria-label="Explore Valora MUN"><ArrowUpRight size={22} /></Link></div>
         </div>
         <div className="orbital-interaction">
           <div className="hero-scene-shell">

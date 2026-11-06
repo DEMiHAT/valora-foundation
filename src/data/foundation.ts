@@ -8,12 +8,12 @@ export const foundation = {
     {
       id: "dialogue",
       number: "01",
-      name: "Dialogue & diplomacy",
-      label: "OUR FIRST INITIATIVE",
+      name: "Dialogue & leadership",
+      label: "IN DEVELOPMENT",
       description:
-        "Debate and negotiation at Valora MUN, with six committees and two training sessions.",
-      status: "Launching November 2026",
-      href: "/events/valora-mun",
+        "Practical opportunities to build communication, confidence and collaborative leadership.",
+      status: "In development",
+      href: "/initiatives#learning",
       icon: "globe",
     },
     {
@@ -41,16 +41,7 @@ export const foundation = {
   ],
   team: [] as { name: string; role: string; bio: string }[],
   partners: [] as { name: string; role: string; url: string; logo: string }[],
-  announcements: [
-    {
-      id: "mun-launch",
-      date: "2026-10-03",
-      title: "Valora MUN — 14 November 2026",
-      description:
-        "Our inaugural conference brings six committees together on 14 November 2026.",
-      href: "/events/valora-mun",
-    },
-  ],
+  announcements: [] as { id: string; date: string; title: string; description: string; href: string }[],
   media: [
     {
       id: "vision",

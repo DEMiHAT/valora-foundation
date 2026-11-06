@@ -114,19 +114,16 @@ export function Footer() {
         <div className="footer-links">
           <span>GET INVOLVED</span>
           <Link href="/events">Explore events</Link>
-          <Link href="/events/valora-mun">Valora MUN 2026</Link>
-          <Link href="/events/valora-mun/register">Registration</Link>
-          <Link href="/events/valora-mun/delegation">School delegation</Link>
+          <Link href="/partners">Partner with Valora</Link>
+          <Link href="/initiatives">Our initiatives</Link>
           <Link href="/contact">Contact us</Link>
         </div>
         <div className="footer-note">
-          <span>VALORA MUN 2026</span>
-          <h3>
-            14 November
-          </h3>
-          <Link href="/events/valora-mun/register">
+          <span>WORK WITH VALORA</span>
+          <h3>Start a conversation.</h3>
+          <Link href="/contact">
             <ArrowUpRight size={30} />
-            <span>Register for MUN</span>
+            <span>Contact the foundation</span>
           </Link>
         </div>
       </div>
@@ -146,23 +143,18 @@ export function CTA() {
     <section className="cta-section">
       <div className="container cta-inner">
         <div>
-          <Eyebrow light>14 NOVEMBER 2026</Eyebrow>
+          <Eyebrow light>KNOWLEDGE. GROWTH. EMPATHY.</Eyebrow>
           <h2>
-            Join<br />
-            <em>Valora MUN.</em>
+            Build what’s next<br />
+            <em>with Valora.</em>
           </h2>
         </div>
         <div>
           <p>
-            Six committees. Two training sessions.
-            <br />
-            ₹999 per delegate.
+            Partner with us on learning, leadership and community programmes.
           </p>
-          <Link
-            href="/events/valora-mun/register"
-            className="button button-gold"
-          >
-            Register for MUN <ArrowUpRight size={18} />
+          <Link href="/contact" className="button button-gold">
+            Contact Valora <ArrowUpRight size={18} />
           </Link>
           <Link href="/contact" className="cta-secondary">
             Partner with the foundation <ArrowRight size={16} />

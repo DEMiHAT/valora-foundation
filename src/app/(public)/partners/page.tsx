@@ -6,15 +6,15 @@ export const metadata = { title: "Partners" };
 export default function Partners() {
   return (
     <>
-      <PageHero eyebrow="VALORA FOUNDATION" title="Partner with Valora." description="Contact us about school participation, sponsorship or support for Valora MUN." />
+      <PageHero eyebrow="VALORA FOUNDATION" title="Partner with Valora." description="Contact us about learning programmes, community work, sponsorship or institutional collaboration." />
       <section className="section">
         <div className="container">
           <Eyebrow>PARTNERSHIP OPTIONS</Eyebrow>
-          <h2>Support Valora MUN.</h2>
+          <h2>Support Valora.</h2>
           <div className="principle-grid">
             {[
-              {title: "Schools & institutions", icon: School, text: "Enquire about bringing your students to the conference."},
-              {title: "Event supporters", icon: Building2, text: "Contribute resources, expertise or sponsorship."},
+              {title: "Schools & institutions", icon: School, text: "Discuss learning and leadership opportunities for young people."},
+              {title: "Programme supporters", icon: Building2, text: "Contribute resources, expertise or sponsorship."},
               {title: "Community collaborators", icon: HeartHandshake, text: "Discuss future learning and community programmes."},
             ].map(p => <div className="principle" key={p.title}><p.icon size={30} strokeWidth={1.3} /><h3>{p.title}</h3><p>{p.text}</p></div>)}
           </div>

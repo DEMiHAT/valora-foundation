@@ -8,7 +8,6 @@ const links = [
   ["About", "/about"],
   ["Initiatives", "/initiatives"],
   ["Events", "/events"],
-  ["Schools", "/events/valora-mun/delegation"],
   ["Partners", "/partners"],
   ["Media", "/media"],
   ["Contact", "/contact"],
@@ -27,13 +26,6 @@ export function Navigation() {
   }, [open]);
   return (
     <>
-      <div className="announcement-bar">
-        <span>THE INAUGURAL VALORA MUN</span>
-        <span className="announcement-date">14 NOVEMBER 2026</span>
-        <Link href="/events/valora-mun">
-          Conference details <ArrowUpRight size={13} />
-        </Link>
-      </div>
       <header className="site-header">
         <Link className="brand" href="/" aria-label="Valora Foundation home">
           <Image
@@ -59,8 +51,8 @@ export function Navigation() {
             </Link>
           ))}
         </nav>
-        <Link href="/events/valora-mun/register" className="header-cta">
-          Register <ArrowUpRight size={16} />
+        <Link href="/contact" className="header-cta">
+          Get in touch <ArrowUpRight size={16} />
         </Link>
         <button
           ref={toggle}
@@ -84,8 +76,8 @@ export function Navigation() {
                 <ArrowUpRight size={17} />
               </Link>
             ))}
-            <Link href="/events/valora-mun/register">
-              Register for Valora MUN
+            <Link href="/contact">
+              Get in touch
             </Link>
           </nav>
         )}

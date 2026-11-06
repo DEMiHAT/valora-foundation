@@ -16,7 +16,7 @@ export default function Initiatives() {
             Our initiatives.
           </>
         }
-        description="Valora MUN is our first initiative. Learning and community programmes are in development."
+        description="Learning, leadership and community programmes are in development."
       />
       <section className="section">
         <div className="container">
@@ -28,15 +28,15 @@ export default function Initiatives() {
           <div>
             <Eyebrow>LEARNING & LEADERSHIP</Eyebrow>
             <h2>
-              Training at<br /><em>Valora MUN.</em>
+              Learning &<br /><em>leadership.</em>
             </h2>
           </div>
           <div>
             <p>
-              Every delegate receives a general MUN training session and a committee-specific session before the conference.
+              We’re developing practical learning opportunities that help young people build communication, confidence and leadership skills.
             </p>
-            <TextLink href="/events/valora-mun">
-              View the conference
+            <TextLink href="/contact">
+              Discuss a learning programme
             </TextLink>
           </div>
         </div>
