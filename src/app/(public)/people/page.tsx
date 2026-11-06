@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ArrowUpRight } from "lucide-react";
 import { CTA, Eyebrow, PageHero } from "@/components/public";
 
 const advisoryBoard = [
@@ -67,6 +68,37 @@ export default function People() {
               </article>
             ))}
           </div>
+        </div>
+      </section>
+      <section className="section partner-schools-section">
+        <div className="container partner-school-layout">
+          <div className="partner-school-intro">
+            <Eyebrow>PARTNERING SCHOOLS</Eyebrow>
+            <h2>Growing through<br /><em>collaboration.</em></h2>
+            <p>We work with schools that share our commitment to meaningful learning, leadership and opportunity for young people.</p>
+          </div>
+          <a
+            className="partner-school-card"
+            href="https://www.springdaysinternational.com"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Visit Springdays International School"
+          >
+            <span className="micro-label">PARTNERING SCHOOL · VELLORE</span>
+            <div className="partner-school-logo">
+              <Image
+                src="/partners/springdays-international.png"
+                alt="Springdays International School"
+                width={2481}
+                height={746}
+                sizes="(max-width: 700px) 80vw, 560px"
+              />
+            </div>
+            <div className="partner-school-link">
+              <span>Visit the school</span>
+              <ArrowUpRight size={22} />
+            </div>
+          </a>
         </div>
       </section>
       <CTA />

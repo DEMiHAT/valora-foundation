@@ -1819,6 +1819,72 @@ em {
   font-size: 12px;
   line-height: 1.65;
 }
+.partner-schools-section { background: #fff; }
+.partner-school-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, .75fr) minmax(480px, 1.25fr);
+  gap: clamp(55px, 10vw, 145px);
+  align-items: center;
+}
+.partner-school-intro h2 { margin-top: 25px; }
+.partner-school-intro > p {
+  max-width: 470px;
+  margin-top: 25px;
+  color: #535b62;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.partner-school-card {
+  position: relative;
+  display: block;
+  min-height: 390px;
+  padding: clamp(32px, 5vw, 62px);
+  color: #fff;
+  background: var(--navy);
+  box-shadow: 0 28px 70px rgba(8, 29, 54, .2);
+  overflow: hidden;
+}
+.partner-school-card::after {
+  content: "S";
+  position: absolute;
+  right: -15px;
+  bottom: -105px;
+  color: rgba(255, 255, 255, .035);
+  font-family: var(--serif);
+  font-size: 360px;
+  line-height: 1;
+  pointer-events: none;
+}
+.partner-school-card .micro-label { color: var(--gold); }
+.partner-school-logo {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  min-height: 205px;
+  padding: 25px 0;
+}
+.partner-school-logo img {
+  display: block;
+  width: min(100%, 620px);
+  height: auto;
+}
+.partner-school-link {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, .28);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.partner-school-card:hover .partner-school-link svg { transform: translate(3px, -3px); }
+.partner-school-link svg { transition: transform .25s ease; }
+.partner-school-card:focus-visible { outline: 3px solid var(--gold); outline-offset: 5px; }
 .principle-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -2365,6 +2431,11 @@ em {
   .people-intro > p { max-width: 650px; }
   .people-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .person-card:last-child { grid-column: 1 / -1; width: calc(50% - 10px); margin: 0 auto; }
+  .partner-school-layout {
+    grid-template-columns: 1fr;
+    gap: 42px;
+  }
+  .partner-school-intro > p { max-width: 620px; }
   .contact-grid {
     gap: 45px;
   }
@@ -2995,6 +3066,11 @@ em {
   .person-portrait { aspect-ratio: 4 / 4.6; }
   .person-details { min-height: 0; padding: 27px 25px 30px; }
   .person-details h3 { font-size: 30px; }
+  .partner-school-card {
+    min-height: 310px;
+    padding: 30px 25px;
+  }
+  .partner-school-logo { min-height: 170px; padding: 20px 0; }
   .principle-grid {
     grid-template-columns: 1fr;
     gap: 35px;
