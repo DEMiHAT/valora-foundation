@@ -20,7 +20,7 @@ Run `npm run typecheck`, `npm test`, and `npm run build` to validate the shared 
 
 ## What's implemented
 
-- Public `/`, `/about`, `/initiatives`, `/events`, `/partners`, `/media`, `/contact`, privacy and event terms pages using the original Valora crest and post identity.
+- Public `/`, `/about`, `/initiatives`, `/events`, `/people`, `/media`, `/contact`, privacy and event terms pages using the original Valora crest and post identity.
 - `/events/valora-mun` and `/events/valora-mun/register`: on-site participant details, ranked committee preferences, Razorpay checkout, saved-session retry and payment status recovery.
 - `/admin`: overview, searchable participants and status filters, payment reference review/correction, manual verification/rejection, allocation capacity and portfolio views, manual overrides, digital ID controls, editable matrices, manual response imports, email delivery status and organiser audit records.
 - Automatic allocation after verified payment: ordered preferences, capacity checks, next free portfolio, manual-allocation fallback, idempotent retries.

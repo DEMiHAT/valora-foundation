@@ -8,7 +8,8 @@ const topics = [
   {label:"Initiatives", words:["initiative","programme","program","learning","leadership","community"], answer:"Valora is developing learning, leadership and community programmes for young people.", href:"/initiatives", action:"Explore initiatives"},
   {label:"Volunteer", words:["volunteer","help","join","card","volunteer id"], answer:"Register online, choose how you would like to contribute and receive a secure digital volunteer card by email.", href:"/volunteer", action:"Volunteer with Valora"},
   {label:"Schools", words:["school","teacher","student","institution"], answer:"Schools and institutions can contact Valora to discuss future learning and leadership opportunities.", href:"/contact", action:"Contact the team"},
-  {label:"Partners", words:["partner","sponsor","organisation","organization","support","collaborate"], answer:"Organisations can work with Valora through programme support, expertise, sponsorship or community collaboration.", href:"/partners", action:"Partnership options"},
+  {label:"People", words:["people","advisor","advisory","mentor","sahana","yajith","ashif"], answer:"Meet the educators and leaders who advise Valora Foundation.", href:"/people", action:"Meet our people"},
+  {label:"Partnerships", words:["partner","sponsor","organisation","organization","support","collaborate"], answer:"Contact Valora to discuss programme support, expertise, sponsorship or community collaboration.", href:"/contact", action:"Contact the team"},
   {label:"Contact", words:["contact","email","instagram","talk","question"], answer:"Use the contact page to reach the Valora team or connect through Instagram.", href:"/contact", action:"Contact Valora"},
 ];
 export function HelpAssistant(){

@@ -50,7 +50,7 @@ export default function Contact() {
             <p>
               Contact the team about learning programmes, community initiatives or partnerships.
             </p>
-            <TextLink href="/partners">Explore partnerships</TextLink>
+            <TextLink href="/people">Meet our people</TextLink>
             <p className="small-note">
               If you’ve registered, include your registration reference when
               contacting the team. Please don’t share payment receipts or

@@ -108,14 +108,14 @@ export function Footer() {
           <span>THE FOUNDATION</span>
           <Link href="/about">Our story</Link>
           <Link href="/initiatives">Our initiatives</Link>
-          <Link href="/partners">Partner with us</Link>
+          <Link href="/people">Our people</Link>
           <Link href="/media">Media & updates</Link>
         </div>
         <div className="footer-links">
           <span>GET INVOLVED</span>
           <Link href="/events">Explore events</Link>
           <Link href="/volunteer">Volunteer with us</Link>
-          <Link href="/partners">Partner with Valora</Link>
+          <Link href="/contact">Partner with Valora</Link>
           <Link href="/initiatives">Our initiatives</Link>
           <Link href="/contact">Contact us</Link>
         </div>

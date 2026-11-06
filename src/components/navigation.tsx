@@ -9,7 +9,7 @@ const links = [
   ["Initiatives", "/initiatives"],
   ["Events", "/events"],
   ["Volunteer", "/volunteer"],
-  ["Partners", "/partners"],
+  ["People", "/people"],
   ["Media", "/media"],
   ["Contact", "/contact"],
 ];

@@ -1730,6 +1730,95 @@ em {
   letter-spacing: .12em;
   text-transform: uppercase;
 }
+.people-section { background: #f3efe7; }
+.people-intro {
+  display: grid;
+  grid-template-columns: 1.2fr .8fr;
+  gap: clamp(50px, 9vw, 130px);
+  align-items: end;
+  margin-bottom: 65px;
+}
+.people-intro h2 { margin-top: 24px; }
+.people-intro > p {
+  max-width: 520px;
+  margin: 0 0 8px;
+  padding-left: 28px;
+  border-left: 1px solid #b9a264;
+  color: #4a525a;
+  font-size: 14px;
+  line-height: 1.8;
+}
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(18px, 3vw, 42px);
+}
+.person-card {
+  position: relative;
+  background: #fff;
+  border-bottom: 3px solid var(--navy);
+  box-shadow: 0 18px 50px rgba(18, 38, 61, .09);
+  overflow: hidden;
+}
+.person-portrait {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: #d9d4ca;
+}
+.person-portrait::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 65%, rgba(8, 29, 54, .42));
+  pointer-events: none;
+}
+.person-portrait img {
+  object-fit: cover;
+  transition: transform .55s ease;
+}
+.person-card:hover .person-portrait img { transform: scale(1.025); }
+.person-portrait .people-portrait-sahana { object-position: 53% center; }
+.person-portrait .people-portrait-yajith { object-position: 52% 24%; }
+.person-portrait .people-portrait-ashif { object-position: center 18%; }
+.person-number {
+  position: absolute;
+  z-index: 1;
+  right: 20px;
+  bottom: 16px;
+  color: #fff;
+  font-family: var(--serif);
+  font-size: 27px;
+}
+.person-details {
+  min-height: 245px;
+  padding: 30px 30px 34px;
+}
+.person-details h3 {
+  margin-top: 18px;
+  color: var(--navy);
+  font-family: var(--serif);
+  font-size: clamp(26px, 2.5vw, 34px);
+  font-weight: 400;
+  line-height: 1.1;
+}
+.person-role {
+  margin-top: 17px;
+  color: var(--wine);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+.person-affiliation {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #ded7ca;
+  color: #525a62;
+  font-size: 12px;
+  line-height: 1.65;
+}
 .principle-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -2269,6 +2358,13 @@ em {
     width: min(680px, 100%);
     margin: 0 auto;
   }
+  .people-intro {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .people-intro > p { max-width: 650px; }
+  .people-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .person-card:last-child { grid-column: 1 / -1; width: calc(50% - 10px); margin: 0 auto; }
   .contact-grid {
     gap: 45px;
   }
@@ -2889,6 +2985,16 @@ em {
   .director-note-copy { margin-top: 28px; }
   .director-note-copy p { font-size: 11px; }
   .director-signature span { line-height: 1.5; }
+  .people-intro { margin-bottom: 38px; }
+  .people-intro > p {
+    padding-left: 18px;
+    font-size: 12px;
+  }
+  .people-grid { grid-template-columns: 1fr; gap: 28px; }
+  .person-card:last-child { grid-column: auto; width: 100%; }
+  .person-portrait { aspect-ratio: 4 / 4.6; }
+  .person-details { min-height: 0; padding: 27px 25px 30px; }
+  .person-details h3 { font-size: 30px; }
   .principle-grid {
     grid-template-columns: 1fr;
     gap: 35px;

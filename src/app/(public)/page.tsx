@@ -44,7 +44,7 @@ export default function Home() {
             <Eyebrow>PARTNERSHIPS</Eyebrow>
             <h2>Build opportunities<br /><em>with Valora.</em></h2>
             <p>Contact us about learning programmes, community work or partnership opportunities.</p>
-            <TextLink href="/partners">Explore partnerships</TextLink>
+            <TextLink href="/contact">Discuss a partnership</TextLink>
           </div>
           <div className="partner-invitation">
             <span className="micro-label">SCHOOLS & ORGANISATIONS</span>
