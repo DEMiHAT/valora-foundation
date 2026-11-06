@@ -17,9 +17,10 @@ export function errorResponse(error: unknown) {
       { error: error.message, code: error.code },
       { status: error.status }
     );
-  console.error(
-    "Valora operation failed:",
-    error instanceof Error ? error.name : "Unknown error"
+  console.error("Valora operation failed:",
+    error instanceof Error
+      ? { name: error.name, message: error.message }
+      : { name: "Unknown error" }
   );
   return NextResponse.json(
     { error: "The operation could not be completed. Please try again." },
