@@ -25,11 +25,11 @@ export default function About() {
         <div className="founder-wordmark" aria-hidden="true">வளர்</div>
         <div className="container founder-message-layout">
           <article className="founder-note">
-            <Eyebrow>FROM THE FOUNDER</Eyebrow>
+            <Eyebrow>FROM THE FOUNDER &amp; PRESIDENT</Eyebrow>
             <span className="founder-rule" aria-hidden="true" />
             <h2>Growth without<br /><em>limits.</em></h2>
             <div className="founder-note-copy">
-              <p>As the Founder of Valora Foundation, my vision is to build an organisation driven by Knowledge, Growth and Empathy.</p>
+              <p>As the Founder and President of Valora Foundation, my vision is to build an organisation driven by Knowledge, Growth and Empathy.</p>
               <p>Inspired by the Tamil word “Valar” (வளர்), meaning to grow, flourish and develop, Valora stands for creating equal access to opportunities and development, irrespective of geography or background. Our phoenix-inspired identity symbolises resilience, renewal and the courage to rise and rebuild.</p>
               <p>We aspire to empower youngsters with meaningful platforms, nurture leadership and create opportunities that translate into tangible social impact. Our purpose is not merely to create initiatives, but to create change that genuinely matters.</p>
               <p>We believe growth should never be limited by where someone comes from, but empowered by the opportunities they receive.</p>
@@ -37,14 +37,14 @@ export default function About() {
             </div>
             <footer className="founder-signature">
               <strong>Sanjay A R</strong>
-              <span>Founder · Valora Foundation</span>
+              <span>Founder &amp; President · Valora Foundation</span>
             </footer>
           </article>
           <div className="founder-portraits" aria-label="Portraits of Sanjay A R">
             <figure className="founder-portrait founder-portrait-primary">
               <Image
                 src="/leadership/sanjay-founder-portrait.jpeg"
-                alt="Sanjay A R, Founder of Valora Foundation"
+                alt="Sanjay A R, Founder and President of Valora Foundation"
                 fill
                 sizes="(max-width: 850px) 80vw, 470px"
               />
@@ -70,7 +70,7 @@ export default function About() {
             <figure className="director-portrait director-portrait-primary">
               <Image
                 src="/leadership/neha-portrait-garden.jpeg"
-                alt="Neha Gokul, Executive Director of Valora Foundation"
+                alt="Neha Gokul, Founder and Executive Director of Valora Foundation"
                 fill
                 sizes="(max-width: 700px) 72vw, 360px"
               />
@@ -85,7 +85,7 @@ export default function About() {
             </figure>
           </div>
           <article className="director-note">
-            <Eyebrow>FROM THE EXECUTIVE DIRECTOR</Eyebrow>
+            <Eyebrow>FROM THE FOUNDER &amp; EXECUTIVE DIRECTOR</Eyebrow>
             <span className="director-quote-mark" aria-hidden="true">“</span>
             <h2>A belief in what<br /><em>can be built.</em></h2>
             <div className="director-note-copy">
@@ -99,7 +99,7 @@ export default function About() {
             </div>
             <footer className="director-signature">
               <strong>Neha Gokul</strong>
-              <span>Executive Director · Valora Foundation</span>
+              <span>Founder &amp; Executive Director · Valora Foundation</span>
             </footer>
           </article>
         </div>
