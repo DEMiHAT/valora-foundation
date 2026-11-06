@@ -21,6 +21,46 @@ export default function About() {
           </div>
         </div>
       </section>
+      <section className="founder-message-section">
+        <div className="founder-wordmark" aria-hidden="true">வளர்</div>
+        <div className="container founder-message-layout">
+          <article className="founder-note">
+            <Eyebrow>FROM THE FOUNDER</Eyebrow>
+            <span className="founder-rule" aria-hidden="true" />
+            <h2>Growth without<br /><em>limits.</em></h2>
+            <div className="founder-note-copy">
+              <p>As the Founder of Valora Foundation, my vision is to build an organisation driven by Knowledge, Growth and Empathy.</p>
+              <p>Inspired by the Tamil word “Valar” (வளர்), meaning to grow, flourish and develop, Valora stands for creating equal access to opportunities and development, irrespective of geography or background. Our phoenix-inspired identity symbolises resilience, renewal and the courage to rise and rebuild.</p>
+              <p>We aspire to empower youngsters with meaningful platforms, nurture leadership and create opportunities that translate into tangible social impact. Our purpose is not merely to create initiatives, but to create change that genuinely matters.</p>
+              <p>We believe growth should never be limited by where someone comes from, but empowered by the opportunities they receive.</p>
+              <p className="founder-values">Valora Foundation<br />Knowledge. Growth. Empathy.</p>
+            </div>
+            <footer className="founder-signature">
+              <strong>Sanjay A R</strong>
+              <span>Founder · Valora Foundation</span>
+            </footer>
+          </article>
+          <div className="founder-portraits" aria-label="Portraits of Sanjay A R">
+            <figure className="founder-portrait founder-portrait-primary">
+              <Image
+                src="/leadership/sanjay-founder-portrait.jpeg"
+                alt="Sanjay A R, Founder of Valora Foundation"
+                fill
+                sizes="(max-width: 850px) 80vw, 470px"
+              />
+            </figure>
+            <figure className="founder-portrait founder-portrait-secondary">
+              <Image
+                src="/leadership/sanjay-conference.jpeg"
+                alt="Sanjay A R chairing a conference session"
+                fill
+                sizes="(max-width: 600px) 45vw, 240px"
+              />
+              <figcaption>Leadership in action</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
       <section className="director-message-section">
         <div className="director-message-backdrop" aria-hidden="true">
           <Image src="/leadership/neha-chairperson.jpeg" alt="" fill sizes="100vw" loading="eager" />

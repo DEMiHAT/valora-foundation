@@ -1465,6 +1465,143 @@ em {
   letter-spacing: 0.18em;
   margin-top: 30px;
 }
+.founder-message-section {
+  position: relative;
+  padding: clamp(90px, 10vw, 145px) 0;
+  background: #e9e3d8;
+  overflow: hidden;
+}
+.founder-wordmark {
+  position: absolute;
+  top: -60px;
+  left: -24px;
+  color: rgba(101, 11, 37, .045);
+  font-family: var(--serif);
+  font-size: clamp(220px, 30vw, 470px);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.founder-message-layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(430px, 1fr) minmax(390px, .9fr);
+  gap: clamp(70px, 10vw, 145px);
+  align-items: center;
+}
+.founder-note {
+  position: relative;
+  z-index: 2;
+  padding: clamp(45px, 5vw, 70px) 0 clamp(45px, 5vw, 70px) clamp(35px, 5vw, 72px);
+  border-left: 1px solid #bda86e;
+}
+.founder-note .eyebrow { color: var(--wine); }
+.founder-rule {
+  display: block;
+  width: 56px;
+  height: 2px;
+  margin: 28px 0 30px;
+  background: var(--gold);
+}
+.founder-note h2 { max-width: 570px; }
+.founder-note-copy {
+  max-width: 610px;
+  margin-top: 38px;
+}
+.founder-note-copy p {
+  margin: 0 0 20px;
+  color: #35404b;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.founder-note-copy .founder-values {
+  margin-top: 28px;
+  color: var(--navy);
+  font-family: var(--serif);
+  font-size: 20px;
+  font-style: italic;
+  line-height: 1.45;
+}
+.founder-signature {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: min(100%, 610px);
+  margin-top: 36px;
+  padding-top: 22px;
+  border-top: 1px solid #c7bca6;
+}
+.founder-signature strong {
+  color: var(--wine);
+  font-family: var(--serif);
+  font-size: 27px;
+  font-weight: 400;
+}
+.founder-signature span {
+  color: var(--navy);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+.founder-portraits {
+  position: relative;
+  min-height: 780px;
+}
+.founder-portraits::before {
+  content: "";
+  position: absolute;
+  inset: 45px -80px 0 62px;
+  background: var(--navy);
+}
+.founder-portraits::after {
+  content: "";
+  position: absolute;
+  top: 22px;
+  right: -58px;
+  width: 180px;
+  height: 180px;
+  border: 1px solid rgba(183, 153, 82, .8);
+  transform: rotate(45deg);
+}
+.founder-portrait {
+  position: absolute;
+  z-index: 1;
+  margin: 0;
+  box-shadow: 0 28px 70px rgba(8, 25, 47, .28);
+}
+.founder-portrait img { object-fit: cover; }
+.founder-portrait-primary {
+  top: 0;
+  right: 0;
+  width: min(92%, 480px);
+  aspect-ratio: 2 / 3;
+  border: 10px solid #f7f2e8;
+}
+.founder-portrait-primary img { object-position: center 30%; }
+.founder-portrait-secondary {
+  bottom: 12px;
+  left: -42px;
+  width: min(49%, 245px);
+  aspect-ratio: 4 / 5;
+  border: 7px solid #f7f2e8;
+  transform: rotate(-2.4deg);
+}
+.founder-portrait-secondary img { object-position: center 32%; }
+.founder-portrait-secondary figcaption {
+  position: absolute;
+  right: -7px;
+  bottom: -34px;
+  left: -7px;
+  padding: 8px 10px;
+  color: var(--gold);
+  background: var(--navy);
+  font-size: 8px;
+  letter-spacing: .14em;
+  text-align: center;
+  text-transform: uppercase;
+}
 .director-message-section {
   position: relative;
   min-height: 1080px;
@@ -1799,6 +1936,9 @@ em {
   .director-message-layout { gap: 50px; }
   .director-note { padding: 55px 48px; }
   .director-note-copy { columns: 1; }
+  .founder-message-layout { gap: 60px; }
+  .founder-note { padding-left: 42px; }
+  .founder-portraits { min-height: 700px; }
   .purpose-grid h2 {
     font-size: 37px;
   }
@@ -2097,6 +2237,21 @@ em {
     padding: 27px;
     min-height: 340px;
   }
+  .founder-message-layout {
+    grid-template-columns: 1fr;
+    gap: 70px;
+  }
+  .founder-note {
+    width: min(680px, 100%);
+    margin: 0 auto;
+    padding-right: 35px;
+  }
+  .founder-portraits {
+    width: min(580px, 88%);
+    min-height: 760px;
+    margin: 0 auto;
+  }
+  .founder-portraits::before { right: -45px; }
   .director-message-section {
     min-height: 0;
     padding: 330px 0 80px;
@@ -2680,6 +2835,39 @@ em {
   }
   .about-grid h2 {
     font-size: 35px;
+  }
+  .founder-message-section { padding: 70px 0 95px; }
+  .founder-wordmark {
+    top: 40px;
+    left: -12px;
+    font-size: 180px;
+  }
+  .founder-message-layout { gap: 42px; }
+  .founder-note {
+    padding: 28px 0 30px 24px;
+  }
+  .founder-note h2 { font-size: 38px; }
+  .founder-note-copy { margin-top: 28px; }
+  .founder-note-copy p { font-size: 11px; }
+  .founder-signature span { line-height: 1.5; }
+  .founder-portraits {
+    width: 100%;
+    min-height: 540px;
+  }
+  .founder-portraits::before { inset: 35px -30px 0 42px; }
+  .founder-portraits::after {
+    right: -35px;
+    width: 120px;
+    height: 120px;
+  }
+  .founder-portrait-primary {
+    width: 80%;
+    border-width: 7px;
+  }
+  .founder-portrait-secondary {
+    left: 0;
+    width: 45%;
+    border-width: 5px;
   }
   .director-message-section { padding: 230px 0 55px; }
   .director-message-backdrop { height: 340px; }
