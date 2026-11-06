@@ -19,7 +19,7 @@ export const foundation = {
     {
       id: "learning",
       number: "02",
-      name: "Learning & leadership",
+      name: "Learning & development",
       label: "PLANNED",
       description:
         "Education and skills programmes for young people.",

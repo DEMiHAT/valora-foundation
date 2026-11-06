@@ -71,7 +71,7 @@ export function GlobeArt() {
   );
 }
 export function PoweredBy({ compact = false }: { compact?: boolean }) {
-  return <div className={`powered-by ${compact ? "powered-by-compact" : ""}`}><span>POWERED BY</span><Image src="/brand/aperture-intelligence.png" alt="Aperture Intelligence Private Limited" width={220} height={80} /></div>;
+  return <div className={`powered-by ${compact ? "powered-by-compact" : ""}`}><span>POWERED BY</span><a href="https://www.apertureintelligence.in" target="_blank" rel="noreferrer" aria-label="Visit Aperture Intelligence"><Image src="/brand/aperture-intelligence.png" alt="Aperture Intelligence Private Limited" width={220} height={80} /></a></div>;
 }
 export function Footer() {
   return (

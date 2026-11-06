@@ -3126,6 +3126,7 @@ em {
 .volunteer-home-banner { background:#102f55; color:#fff; }
 .volunteer-home-banner .eyebrow { color:#f0ca4f; }
 .volunteer-home-banner .volunteer-count-number { color:#f0ca4f; font-size:inherit; line-height:inherit; }
+.volunteer-home-banner h2 em { color:#f0ca4f; }
 .volunteer-home-banner p { color:#dce5ee; max-width:470px; }
 .volunteer-home-banner .text-link { color:#fff; }
 .volunteer-digital-card { border-radius:24px; overflow:hidden; background:#102f55; color:#fff; box-shadow:0 28px 70px #071d3d35; }
@@ -5002,6 +5003,8 @@ em {
 /* Aperture Intelligence credit */
 .powered-by{display:flex;flex-direction:column;align-items:flex-start;gap:3px;width:max-content;max-width:100%;margin-top:24px}
 .powered-by > span{font-size:8px;font-weight:700;letter-spacing:.2em;color:#746b61}
+.powered-by > a{display:block;line-height:0}
+.powered-by > a:focus-visible{outline:2px solid var(--wine);outline-offset:4px}
 .powered-by img{display:block;width:190px;height:auto;mix-blend-mode:multiply}
 .powered-by-compact{margin-top:22px}
 .powered-by-compact img{width:165px}
