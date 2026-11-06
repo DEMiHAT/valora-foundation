@@ -11,14 +11,14 @@ const advisoryBoard = [
     imageClass: "people-portrait-sahana",
   },
   {
-    name: "Geetha Sundar",
+    name: "Mrs. Geetha Sundar",
     valoraRole: "Senior Advisor",
     affiliation: "Principal, Advaita International School, Tiruppur",
     image: "/people/geetha-sundar.jpeg",
     imageClass: "people-portrait-geetha",
   },
   {
-    name: "Yajith Vihas Repakula",
+    name: "Mr. Yajith Vihas Repakula",
     valoraRole: "Advisory Board Member",
     affiliation: "Director, VR Educational Group",
     image: "/people/yajith-vihas-repakula.jpeg",
