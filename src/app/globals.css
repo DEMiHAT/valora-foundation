@@ -1465,6 +1465,134 @@ em {
   letter-spacing: 0.18em;
   margin-top: 30px;
 }
+.director-message-section {
+  position: relative;
+  min-height: 1080px;
+  padding: clamp(310px, 34vw, 500px) 0 110px;
+  background: var(--navy);
+  overflow: hidden;
+}
+.director-message-backdrop {
+  position: absolute;
+  inset: 0 0 auto;
+  height: clamp(430px, 48vw, 690px);
+}
+.director-message-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(7, 25, 48, .18), rgba(7, 25, 48, .42)), linear-gradient(180deg, rgba(7, 25, 48, .08) 42%, var(--navy) 100%);
+}
+.director-message-backdrop img {
+  object-fit: cover;
+  object-position: center 44%;
+}
+.director-message-layout {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(300px, .8fr) minmax(480px, 1.2fr);
+  gap: clamp(60px, 8vw, 120px);
+  align-items: start;
+}
+.director-portraits {
+  position: relative;
+  min-height: 690px;
+  margin-top: 115px;
+}
+.director-portrait {
+  position: absolute;
+  margin: 0;
+  background: #e9e1d1;
+  border: 10px solid #f7f2e8;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, .36);
+}
+.director-portrait img { object-fit: cover; }
+.director-portrait-primary {
+  inset: 0 auto auto 0;
+  width: min(82%, 370px);
+  aspect-ratio: 2 / 3;
+  transform: rotate(-2.2deg);
+}
+.director-portrait-primary img { object-position: center 32%; }
+.director-portrait-secondary {
+  right: 0;
+  bottom: 0;
+  width: min(55%, 235px);
+  aspect-ratio: 4 / 5;
+  border-width: 7px;
+  transform: rotate(3deg);
+}
+.director-portrait-secondary img { object-position: center 25%; }
+.director-note {
+  position: relative;
+  padding: clamp(48px, 6vw, 84px);
+  background: #f6f1e8;
+  box-shadow: 0 35px 90px rgba(0, 0, 0, .27);
+}
+.director-note::after {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border: 1px solid rgba(167, 137, 72, .34);
+  pointer-events: none;
+}
+.director-note > * { position: relative; z-index: 1; }
+.director-note .eyebrow { color: var(--wine); }
+.director-note h2 {
+  margin-top: 25px;
+  max-width: 620px;
+}
+.director-quote-mark {
+  position: absolute;
+  z-index: 0;
+  top: 20px;
+  right: 44px;
+  color: rgba(167, 137, 72, .16);
+  font-family: var(--serif);
+  font-size: 180px;
+  line-height: 1;
+}
+.director-note-copy {
+  margin-top: 38px;
+  columns: 2;
+  column-gap: 44px;
+  column-rule: 1px solid #d8cfbf;
+}
+.director-note-copy p {
+  break-inside: avoid;
+  margin: 0 0 20px;
+  color: #3c4550;
+  font-size: 12px;
+  line-height: 1.85;
+}
+.director-note-copy .director-welcome {
+  color: var(--navy);
+  font-family: var(--serif);
+  font-size: 21px;
+  font-style: italic;
+}
+.director-signature {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 35px;
+  padding-top: 22px;
+  border-top: 1px solid #cdbf9e;
+}
+.director-signature strong {
+  color: var(--navy);
+  font-family: var(--serif);
+  font-size: 25px;
+  font-weight: 400;
+}
+.director-signature span {
+  color: var(--wine);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
 .principle-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1668,6 +1796,9 @@ em {
   .registration-grid {
     gap: 55px;
   }
+  .director-message-layout { gap: 50px; }
+  .director-note { padding: 55px 48px; }
+  .director-note-copy { columns: 1; }
   .purpose-grid h2 {
     font-size: 37px;
   }
@@ -1965,6 +2096,23 @@ em {
   .about-crest {
     padding: 27px;
     min-height: 340px;
+  }
+  .director-message-section {
+    min-height: 0;
+    padding: 330px 0 80px;
+  }
+  .director-message-layout {
+    grid-template-columns: 1fr;
+    gap: 55px;
+  }
+  .director-portraits {
+    width: min(560px, 88%);
+    min-height: 640px;
+    margin: 0 auto;
+  }
+  .director-note {
+    width: min(680px, 100%);
+    margin: 0 auto;
   }
   .contact-grid {
     gap: 45px;
@@ -2533,6 +2681,26 @@ em {
   .about-grid h2 {
     font-size: 35px;
   }
+  .director-message-section { padding: 230px 0 55px; }
+  .director-message-backdrop { height: 340px; }
+  .director-portraits {
+    width: 100%;
+    min-height: 500px;
+  }
+  .director-portrait { border-width: 7px; }
+  .director-portrait-primary { width: 72%; }
+  .director-portrait-secondary { width: 46%; }
+  .director-note { padding: 46px 34px; }
+  .director-note::after { inset: 12px; }
+  .director-note h2 { font-size: 36px; }
+  .director-quote-mark {
+    top: 18px;
+    right: 26px;
+    font-size: 130px;
+  }
+  .director-note-copy { margin-top: 28px; }
+  .director-note-copy p { font-size: 11px; }
+  .director-signature span { line-height: 1.5; }
   .principle-grid {
     grid-template-columns: 1fr;
     gap: 35px;
