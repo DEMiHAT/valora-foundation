@@ -11,6 +11,13 @@ const advisoryBoard = [
     imageClass: "people-portrait-sahana",
   },
   {
+    name: "Geetha Sundar",
+    valoraRole: "Senior Advisor",
+    affiliation: "Principal, Advaita International School, Tiruppur",
+    image: "/people/geetha-sundar.jpeg",
+    imageClass: "people-portrait-geetha",
+  },
+  {
     name: "Yajith Vihas Repakula",
     valoraRole: "Advisory Board Member",
     affiliation: "Director, VR Educational Group",
@@ -54,10 +61,9 @@ export default function People() {
                     src={person.image}
                     alt={`${person.name}, ${person.valoraRole} at Valora Foundation`}
                     fill
-                    sizes="(max-width: 700px) 90vw, (max-width: 1100px) 45vw, 31vw"
+                    sizes="(max-width: 700px) 90vw, 45vw"
                     loading={index === 0 ? "eager" : "lazy"}
                   />
-                  <span className="person-number">0{index + 1}</span>
                 </div>
                 <div className="person-details">
                   <span className="micro-label">ADVISORY BOARD</span>
@@ -79,18 +85,18 @@ export default function People() {
           </div>
           <a
             className="partner-school-card"
-            href="https://www.springdaysinternational.com"
+            href="https://springdaysschool.com"
             target="_blank"
             rel="noreferrer"
-            aria-label="Visit Springdays International School"
+            aria-label="Visit Springdays School"
           >
             <span className="micro-label">PARTNERING SCHOOL · VELLORE</span>
             <div className="partner-school-logo">
               <Image
-                src="/partners/springdays-international.png"
-                alt="Springdays International School"
-                width={2481}
-                height={746}
+                src="/partners/springdays-school.png"
+                alt="Springdays School (CBSE)"
+                width={200}
+                height={57}
                 sizes="(max-width: 700px) 80vw, 560px"
               />
             </div>

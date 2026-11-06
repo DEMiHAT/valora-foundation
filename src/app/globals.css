@@ -1750,7 +1750,7 @@ em {
 }
 .people-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(18px, 3vw, 42px);
 }
 .person-card {
@@ -1779,17 +1779,9 @@ em {
 }
 .person-card:hover .person-portrait img { transform: scale(1.025); }
 .person-portrait .people-portrait-sahana { object-position: 53% center; }
+.person-portrait .people-portrait-geetha { object-position: 58% center; }
 .person-portrait .people-portrait-yajith { object-position: 52% 24%; }
 .person-portrait .people-portrait-ashif { object-position: center 18%; }
-.person-number {
-  position: absolute;
-  z-index: 1;
-  right: 20px;
-  bottom: 16px;
-  color: #fff;
-  font-family: var(--serif);
-  font-size: 27px;
-}
 .person-details {
   min-height: 245px;
   padding: 30px 30px 34px;
@@ -2430,7 +2422,6 @@ em {
   }
   .people-intro > p { max-width: 650px; }
   .people-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .person-card:last-child { grid-column: 1 / -1; width: calc(50% - 10px); margin: 0 auto; }
   .partner-school-layout {
     grid-template-columns: 1fr;
     gap: 42px;
@@ -3062,7 +3053,6 @@ em {
     font-size: 12px;
   }
   .people-grid { grid-template-columns: 1fr; gap: 28px; }
-  .person-card:last-child { grid-column: auto; width: 100%; }
   .person-portrait { aspect-ratio: 4 / 4.6; }
   .person-details { min-height: 0; padding: 27px 25px 30px; }
   .person-details h3 { font-size: 30px; }
