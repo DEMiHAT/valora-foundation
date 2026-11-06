@@ -1,4 +1,4 @@
-import { PageHero, CTA } from "@/components/public";
+import { PageHero } from "@/components/public";
 export const metadata = { title: "Events" };
 export default function Events() {
   return (
@@ -10,9 +10,8 @@ export default function Events() {
             Events.
           </>
         }
-        description="Our inaugural Model United Nations conference takes place on 14 November 2026."
+        description="Updates on upcoming Valora Foundation events will be shared here."
       />
-      <CTA />
     </>
   );
 }
