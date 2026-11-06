@@ -2621,9 +2621,14 @@ em {
 /* Volunteer registration and digital card */
 .volunteer-overview { background: #f6f3eb; }
 .volunteer-overview-grid,.volunteer-registration-grid,.volunteer-home-inner,.volunteer-credential-page { display:grid; grid-template-columns:minmax(0,.85fr) minmax(0,1.35fr); gap:clamp(40px,7vw,100px); align-items:start; }
-.volunteer-live-count { display:flex; flex-direction:column; margin:24px 0 12px; }
+.volunteer-community-stat { position:relative; min-height:360px; display:flex; flex-direction:column; justify-content:center; padding:clamp(30px,5vw,64px); background:#102f55; color:#fff; overflow:hidden; }
+.volunteer-community-stat::after { content:"V"; position:absolute; right:-20px; bottom:-95px; font-family:Georgia,serif; font-size:330px; line-height:1; color:#ffffff0a; pointer-events:none; }
+.volunteer-community-stat .eyebrow { color:#f0ca4f; }
+.volunteer-community-count { display:flex; align-items:baseline; gap:18px; margin:36px 0 18px; position:relative; z-index:1; }
+.volunteer-community-count span { font-family:Georgia,serif; font-size:clamp(28px,4vw,48px); color:#fff; }
+.volunteer-community-stat>p { color:#cbd7e4; margin:0; font-size:15px; letter-spacing:.04em; }
 .volunteer-count-number { font-family:var(--font-serif,Georgia,serif); color:#650b25; font-size:clamp(72px,10vw,138px); line-height:.78; font-weight:400; }
-.volunteer-live-count span { margin-top:18px; font-size:12px; letter-spacing:2px; text-transform:uppercase; }
+.volunteer-community-count .volunteer-count-number { color:#f0ca4f; }
 .volunteer-benefits { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1px; background:#d9d4c4; border:1px solid #d9d4c4; }
 .volunteer-benefits>div { background:#fff; padding:30px; min-height:190px; }
 .volunteer-benefits svg { color:#650b25; }
