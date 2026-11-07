@@ -1487,7 +1487,7 @@ em {
   position: absolute;
   top: -60px;
   left: -24px;
-  color: rgba(101, 11, 37, .045);
+  color: rgba(101, 11, 37, .035);
   font-family: var(--serif);
   font-size: clamp(220px, 30vw, 470px);
   font-weight: 700;
@@ -1505,9 +1505,18 @@ em {
 .founder-note {
   position: relative;
   z-index: 2;
-  padding: clamp(45px, 5vw, 70px) 0 clamp(45px, 5vw, 70px) clamp(35px, 5vw, 72px);
-  border-left: 1px solid #bda86e;
+  padding: clamp(48px, 6vw, 84px);
+  background: #f6f1e8;
+  box-shadow: 0 35px 90px rgba(8, 25, 47, .18);
 }
+.founder-note::after {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border: 1px solid rgba(167, 137, 72, .34);
+  pointer-events: none;
+}
+.founder-note > * { position: relative; z-index: 1; }
 .founder-note .eyebrow { color: var(--wine); }
 .founder-rule {
   display: block;
@@ -3014,7 +3023,7 @@ em {
   }
   .founder-message-layout { gap: 42px; }
   .founder-note {
-    padding: 28px 0 30px 24px;
+    padding: 42px 32px;
   }
   .founder-note h2 { font-size: 38px; }
   .founder-note-copy { margin-top: 28px; }

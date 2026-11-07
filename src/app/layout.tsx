@@ -10,7 +10,11 @@ export const metadata: Metadata = {
   },
   description:
     "A foundation helping young people learn, grow, lead with empathy and create meaningful community impact.",
-  icons: { icon: "/favicon.svg" },
+  icons: {
+    icon: [{ url: "/brand/crest.png", type: "image/png" }],
+    shortcut: "/brand/crest.png",
+    apple: "/brand/crest.png",
+  },
 };
 export default function RootLayout({
   children,
