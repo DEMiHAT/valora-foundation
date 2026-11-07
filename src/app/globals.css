@@ -3021,7 +3021,10 @@ em {
     left: -12px;
     font-size: 180px;
   }
-  .founder-message-layout { gap: 42px; }
+  .founder-message-layout {
+    gap: 42px;
+    padding-top: 110px;
+  }
   .founder-note {
     padding: 42px 32px;
   }
