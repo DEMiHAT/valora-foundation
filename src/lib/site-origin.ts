@@ -5,8 +5,8 @@ export function siteOrigin() {
     ? "https://www.valorafoundation.in"
     : undefined;
   return new URL(
-    process.env.APP_URL ||
-      productionOrigin ||
+    productionOrigin ||
+      process.env.APP_URL ||
       (host ? `https://${host}` : "http://localhost:3000")
   ).origin;
 }

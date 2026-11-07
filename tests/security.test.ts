@@ -7,6 +7,7 @@ import {
   readSession,
 } from "../src/lib/security";
 import { isSameOrigin } from "../src/lib/request-origin";
+import { siteOrigin } from "../src/lib/site-origin";
 test("organiser passwords are salted and verified with scrypt", () => {
   const hash = hashPassword("a-long-test-password");
   assert.equal(checkPassword("a-long-test-password", hash), true);
@@ -53,4 +54,18 @@ test("same-origin checks use the public request host", () => {
     ),
     false
   );
+});
+test("production links use Valora's public domain", () => {
+  const previousVercelEnv = process.env.VERCEL_ENV;
+  const previousAppUrl = process.env.APP_URL;
+  try {
+    process.env.VERCEL_ENV = "production";
+    process.env.APP_URL = "https://valora-mu-beryl.vercel.app";
+    assert.equal(siteOrigin(), "https://www.valorafoundation.in");
+  } finally {
+    if (previousVercelEnv === undefined) delete process.env.VERCEL_ENV;
+    else process.env.VERCEL_ENV = previousVercelEnv;
+    if (previousAppUrl === undefined) delete process.env.APP_URL;
+    else process.env.APP_URL = previousAppUrl;
+  }
 });
