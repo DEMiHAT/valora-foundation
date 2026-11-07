@@ -10,13 +10,27 @@ export async function GET() {
   try {
     await requireSession();
     const state = await repository().snapshot();
+    const operationalEvents = events.filter((event) =>
+      state.managed_events.some(
+        (managed) =>
+          managed.status === "PUBLISHED" &&
+          (managed.event_id === event.id || managed.slug === event.slug)
+      )
+    );
     return NextResponse.json(
       {
         state,
         paymentMode: paymentMode(),
-        checkoutReady: events.every(e => checkoutConfigured(e)),
-        totals: Object.fromEntries(events.map(e => [e.id, registrationTotals(state, e.id)])),
-        events: events.map((e) => ({
+        checkoutReady:
+          operationalEvents.length > 0 &&
+          operationalEvents.every((event) => checkoutConfigured(event)),
+        totals: Object.fromEntries(
+          operationalEvents.map((event) => [
+            event.id,
+            registrationTotals(state, event.id),
+          ])
+        ),
+        events: operationalEvents.map((e) => ({
           ...e,
           categories: state.matrices[e.id] ?? e.categories,
           matrixApproved: process.env[e.matrixApprovalEnvKey] === "true",

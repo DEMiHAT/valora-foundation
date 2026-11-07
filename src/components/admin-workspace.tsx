@@ -17,6 +17,7 @@ import {
   Mail,
   Settings2,
   Upload,
+  CalendarDays,
 } from "lucide-react";
 import type { DomainState } from "@/lib/domain";
 import type {
@@ -56,7 +57,7 @@ type Snapshot = {
 };
 const titles: Record<Section, { title: string; description: string }> = {
   overview: {
-    title: "A clear view of your event.",
+    title: "A clear view of your operations.",
     description:
       "From registration to the committee room. Everything that needs your attention.",
   },
@@ -409,7 +410,7 @@ export function AdminWorkspace({ section }: { section: Section }) {
         </div>
       ) : (
         <>
-          {!['events', 'volunteers'].includes(section) && <div className="admin-event-bar">
+          {!['events', 'volunteers'].includes(section) && data.events.length > 0 && <div className="admin-event-bar">
             <label>
               EVENT
               <select
@@ -436,6 +437,14 @@ export function AdminWorkspace({ section }: { section: Section }) {
               View event <ArrowUpRight size={14} />
             </Link>
           </div>}
+          {!['events', 'volunteers', 'activity'].includes(section) && data.events.length === 0 && (
+            <div className="admin-empty">
+              <CalendarDays size={32} />
+              <h2>No active event</h2>
+              <p>Create and publish an event when you are ready. Valora MUN 2026 is no longer active in this workspace.</p>
+              <Link className="button button-primary" href="/admin/events">Manage events <ArrowUpRight size={15} /></Link>
+            </div>
+          )}
           {data.paymentMode === "test" && <div className="admin-alert"><InfoIcon/><span>Test payment workspace. These registrations and totals are isolated from live conference bookings.</span></div>}
           {data.provider === "Local development" && (
             <div className="admin-alert">
@@ -456,7 +465,7 @@ export function AdminWorkspace({ section }: { section: Section }) {
                 </span>
               </div>
             )}
-          {section === "overview" && (
+          {section === "overview" && event && (
             <>
               <div className="stats-grid">
                 {[
@@ -582,7 +591,7 @@ export function AdminWorkspace({ section }: { section: Section }) {
               </section>
             </>
           )}
-          {["participants", "payments", "ids"].includes(section) && (
+          {["participants", "payments", "ids"].includes(section) && event && (
             <section className="admin-panel">
               <div className="table-toolbar">
                 <label className="search-input">
@@ -697,7 +706,7 @@ export function AdminWorkspace({ section }: { section: Section }) {
               ) : <Empty title="No volunteers to show" text="Add your first volunteer and assign their event role and shift." />}
             </section>
           )}
-          {section === "allocations" && (
+          {section === "allocations" && event && (
             <>
               <div className="allocation-summary">
                 <span>{allocated.length} allocated</span>
@@ -730,7 +739,7 @@ export function AdminWorkspace({ section }: { section: Section }) {
               </div>
             </>
           )}
-          {section === "settings" && (
+          {section === "settings" && event && (
             <>
               <div className="admin-panel event-config-summary">
                 <div>
@@ -789,7 +798,7 @@ export function AdminWorkspace({ section }: { section: Section }) {
               </div>
             </>
           )}
-          {section === "imports" && (
+          {section === "imports" && event && (
             <>
               <section className="admin-panel import-intro">
                 <FileInput size={34} />
