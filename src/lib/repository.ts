@@ -31,6 +31,7 @@ import {
   publicVolunteerCredential,
   volunteerCount as domainVolunteerCount,
   volunteerCommand,
+  managedEventCommand,
   type DomainState,
   type Runtime,
 } from "./domain";
@@ -44,6 +45,8 @@ import type {
   VolunteerRegistration,
   PublicVolunteerCredential,
   VolunteerCommand,
+  ManagedEvent,
+  ManagedEventCommand,
 } from "./models";
 const runtime: Runtime = {
   uuid: randomUUID,
@@ -66,6 +69,8 @@ export interface Repository {
   ): Promise<RegistrationView>;
   command(command: AdminCommand, actor: string): Promise<RegistrationView>;
   volunteer(command: VolunteerCommand, actor: string): Promise<VolunteerRegistration>;
+  importVolunteers(commands: VolunteerCommand[], actor: string): Promise<{ imported: number; skipped: number }>;
+  manageEvent(command: ManagedEventCommand, actor: string): Promise<ManagedEvent>;
   verify(token: string, id?: string): Promise<PublicCredential | null>;
   rateLimit(key: string, limit: number, windowMs: number): Promise<boolean>;
   matrix(
@@ -155,6 +160,24 @@ class LocalRepository implements Repository {
   }
   volunteer(command: VolunteerCommand, actor: string) {
     return this.transact((s) => volunteerCommand(s, command, volunteerPrograms, runtime, actor));
+  }
+  importVolunteers(commands: VolunteerCommand[], actor: string) {
+    return this.transact((state) => {
+      let imported = 0, skipped = 0;
+      for (const command of commands) {
+        const email = command.email.trim().toLowerCase();
+        if ((state.volunteers ?? []).some((item) => item.program_id === command.program_id && item.email === email)) {
+          skipped++;
+          continue;
+        }
+        volunteerCommand(state, command, volunteerPrograms, runtime, actor);
+        imported++;
+      }
+      return { imported, skipped };
+    });
+  }
+  manageEvent(command: ManagedEventCommand, actor: string) {
+    return this.transact((state) => managedEventCommand(state, command, runtime, actor));
   }
   verify(token: string, id?: string) {
     return this.transact((s) =>
@@ -271,6 +294,12 @@ class AppsScriptRepository implements Repository {
   }
   volunteer(command: VolunteerCommand, actor: string) {
     return this.call<VolunteerRegistration>("volunteer-admin", { command, actor });
+  }
+  importVolunteers(commands: VolunteerCommand[], actor: string) {
+    return this.call<{ imported: number; skipped: number }>("volunteer-import", { commands, actor });
+  }
+  manageEvent(command: ManagedEventCommand, actor: string) {
+    return this.call<ManagedEvent>("event-admin", { command, actor });
   }
   verify(token: string, id?: string) {
     return this.call<PublicCredential | null>("verify", { token, id });

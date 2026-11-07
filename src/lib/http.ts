@@ -52,9 +52,9 @@ export async function rate(
       429
     );
 }
-export async function jsonBody(request: Request) {
+export async function jsonBody(request: Request, maxBytes = 32000) {
   const text = await request.text();
-  if (text.length > 32000)
+  if (text.length > maxBytes)
     throw new DomainError("TOO_LARGE", "Request too large.", 413);
   try {
     return JSON.parse(text);

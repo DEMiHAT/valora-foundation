@@ -35,6 +35,8 @@ var ValoraDomain = (() => {
     createVolunteer: () => createVolunteer,
     emptyState: () => emptyState,
     finishEmail: () => finishEmail,
+    managedEventCommand: () => managedEventCommand,
+    managedEventCommandSchema: () => managedEventCommandSchema,
     publicCredential: () => publicCredential,
     publicVolunteerCredential: () => publicVolunteerCredential,
     registrationSchema: () => registrationSchema,
@@ -77,10 +79,54 @@ var ValoraDomain = (() => {
       audit: [],
       outbox: [],
       volunteers: [],
+      managed_events: [],
       counters: {},
       rateLimits: {},
       matrices: {}
     };
+  }
+  function managedEvents(state) {
+    return state.managed_events ?? (state.managed_events = []);
+  }
+  function managedEventCommand(state, command, runtime, actor) {
+    const records = managedEvents(state);
+    if (command.action === "delete") {
+      const index = records.findIndex((event) => event.event_id === command.event_id);
+      if (index < 0) throw new DomainError("NOT_FOUND", "Event not found.", 404);
+      const [removed] = records.splice(index, 1);
+      audit(state, runtime, "event-deleted", removed.event_id, actor, removed.title);
+      return removed;
+    }
+    const slug = command.slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    if (!slug) throw new DomainError("SLUG", "Enter a valid event slug.");
+    if (records.some((event) => event.slug === slug && event.event_id !== command.event_id))
+      throw new DomainError("DUPLICATE", "An event with this slug already exists.", 409);
+    const values = {
+      slug,
+      title: command.title.trim(),
+      type: command.type.trim(),
+      date: command.date,
+      venue: command.venue.trim(),
+      description: command.description.trim(),
+      registration_url: (command.registration_url ?? "").trim(),
+      status: command.status ?? "DRAFT",
+      updated_at: runtime.now()
+    };
+    if (command.action === "update") {
+      const record2 = records.find((event) => event.event_id === command.event_id);
+      if (!record2) throw new DomainError("NOT_FOUND", "Event not found.", 404);
+      Object.assign(record2, values);
+      audit(state, runtime, "event-updated", record2.event_id, actor, record2.title);
+      return record2;
+    }
+    const record = {
+      event_id: "VE-" + runtime.uuid(),
+      ...values,
+      created_at: runtime.now()
+    };
+    records.push(record);
+    audit(state, runtime, "event-created", record.event_id, actor, record.title);
+    return record;
   }
   function volunteers(state) {
     return state.volunteers ?? (state.volunteers = []);
@@ -4957,6 +5003,35 @@ Valora Foundation`,
   }).superRefine((value, context) => {
     if (["update", "delete"].includes(value.action) && !value.volunteer_id)
       context.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["volunteer_id"], message: "Volunteer ID is required." });
+  });
+  var managedEventCommandSchema = external_exports.object({
+    action: external_exports.enum(["create", "update", "delete"]),
+    event_id: external_exports.string().min(1).max(100).optional(),
+    slug: external_exports.string().trim().min(2).max(100),
+    title: external_exports.string().trim().min(2).max(160),
+    type: external_exports.string().trim().min(2).max(80),
+    date: external_exports.string().datetime({ offset: true }),
+    venue: external_exports.string().trim().min(2).max(200),
+    description: external_exports.string().trim().min(10).max(2e3),
+    registration_url: external_exports.union([external_exports.literal(""), external_exports.string().url().max(500)]).optional(),
+    status: external_exports.enum(["DRAFT", "PUBLISHED"]).optional()
+  }).superRefine((value, context) => {
+    if (["update", "delete"].includes(value.action) && !value.event_id)
+      context.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["event_id"], message: "Event ID is required." });
+  });
+  var volunteerImportSchema = external_exports.object({
+    volunteers: external_exports.array(external_exports.object({
+      action: external_exports.literal("create"),
+      program_id: external_exports.string().min(1).max(80),
+      name: external_exports.string().trim().min(2).max(120),
+      email: external_exports.string().trim().email().max(254),
+      phone: external_exports.string().trim().regex(/^\+?[\d\s()-]{7,20}$/),
+      city: external_exports.string().trim().min(2).max(100),
+      contributions: external_exports.array(external_exports.string().trim().min(2).max(80)).min(1).max(5),
+      shift: external_exports.string().trim().max(120).optional(),
+      notes: external_exports.string().trim().max(1e3).optional(),
+      status: external_exports.enum(["ACTIVE", "REVOKED"]).optional()
+    })).min(1).max(500)
   });
   var checkoutRegistrationSchema = registrationSchema.omit({
     payment_reference: true,

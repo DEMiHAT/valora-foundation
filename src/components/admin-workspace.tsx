@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Mail,
   Settings2,
+  Upload,
 } from "lucide-react";
 import type { DomainState } from "@/lib/domain";
 import type {
@@ -26,11 +27,14 @@ import type {
   VolunteerRegistration,
   VolunteerCommand,
   VolunteerProgram,
+  ManagedEvent,
+  ManagedEventCommand,
 } from "@/lib/models";
 import { Modal } from "./modal";
 import { Button } from "./ui/button";
 type Section =
   | "overview"
+  | "events"
   | "participants"
   | "volunteers"
   | "payments"
@@ -55,6 +59,10 @@ const titles: Record<Section, { title: string; description: string }> = {
     title: "A clear view of your event.",
     description:
       "From registration to the committee room. Everything that needs your attention.",
+  },
+  events: {
+    title: "Publish what’s next.",
+    description: "Create, edit and publish events shown on the public website.",
   },
   participants: {
     title: "The people behind the event.",
@@ -116,6 +124,26 @@ function shortDate(date: string) {
     timeZone: "Asia/Kolkata",
   }).format(new Date(date));
 }
+function parseCsv(text: string) {
+  const rows: string[][] = [];
+  let row: string[] = [], value = "", quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (char === '"' && quoted && text[i + 1] === '"') { value += '"'; i++; }
+    else if (char === '"') quoted = !quoted;
+    else if (char === "," && !quoted) { row.push(value.trim()); value = ""; }
+    else if ((char === "\n" || char === "\r") && !quoted) {
+      if (char === "\r" && text[i + 1] === "\n") i++;
+      row.push(value.trim()); value = "";
+      if (row.some(Boolean)) rows.push(row);
+      row = [];
+    } else value += char;
+  }
+  row.push(value.trim());
+  if (row.some(Boolean)) rows.push(row);
+  const headers = (rows.shift() ?? []).map((header) => header.toLowerCase().replace(/\s+/g, "_"));
+  return rows.map((cells) => Object.fromEntries(headers.map((header, index) => [header, cells[index] ?? ""])));
+}
 async function requestJson(url: string, body?: unknown) {
   const r = await fetch(
     url,
@@ -148,6 +176,8 @@ export function AdminWorkspace({ section }: { section: Section }) {
     [importOpen, setImportOpen] = useState(false);
   const [volunteerOpen, setVolunteerOpen] = useState(false),
     [selectedVolunteer, setSelectedVolunteer] = useState<VolunteerRegistration>();
+  const [eventOpen, setEventOpen] = useState(false),
+    [selectedManagedEvent, setSelectedManagedEvent] = useState<ManagedEvent>();
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -261,6 +291,16 @@ export function AdminWorkspace({ section }: { section: Section }) {
       setBusy(false);
     }
   }
+  async function saveManagedEvent(command: ManagedEventCommand) {
+    setBusy(true); setError(""); setNotice("");
+    try {
+      await requestJson("/api/admin/events", command);
+      setEventOpen(false); setSelectedManagedEvent(undefined);
+      setNotice(command.action === "delete" ? "Event removed from the catalogue." : "Event saved. Published changes are now visible on the website.");
+      await load();
+    } catch (e) { setError((e as Error).message); throw e; }
+    finally { setBusy(false); }
+  }
   function exportCsv() {
     const columns = [
       "registration_id",
@@ -369,7 +409,7 @@ export function AdminWorkspace({ section }: { section: Section }) {
         </div>
       ) : (
         <>
-          <div className="admin-event-bar">
+          {!['events', 'volunteers'].includes(section) && <div className="admin-event-bar">
             <label>
               EVENT
               <select
@@ -395,7 +435,7 @@ export function AdminWorkspace({ section }: { section: Section }) {
             <Link href={`/events/${event?.slug}`}>
               View event <ArrowUpRight size={14} />
             </Link>
-          </div>
+          </div>}
           {data.paymentMode === "test" && <div className="admin-alert"><InfoIcon/><span>Test payment workspace. These registrations and totals are isolated from live conference bookings.</span></div>}
           {data.provider === "Local development" && (
             <div className="admin-alert">
@@ -592,6 +632,17 @@ export function AdminWorkspace({ section }: { section: Section }) {
               />
             </section>
           )}
+          {section === "events" && (
+            <section className="admin-panel">
+              <div className="table-toolbar">
+                <div><strong>Public event catalogue</strong><span className="toolbar-note">Only published events appear on the website.</span></div>
+                <Button onClick={() => { setSelectedManagedEvent(undefined); setEventOpen(true); }}>Add event <ArrowUpRight size={15} /></Button>
+              </div>
+              {(state!.managed_events ?? []).length ? <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Event</th><th>Date</th><th>Venue</th><th>Status</th><th>Details</th></tr></thead><tbody>
+                {(state!.managed_events ?? []).map((managed) => <tr key={managed.event_id}><td><strong>{managed.title}</strong><span>/{managed.slug} · {managed.type}</span></td><td>{new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeZone: "Asia/Kolkata" }).format(new Date(managed.date))}</td><td>{managed.venue}</td><td><StatusBadge value={managed.status} /></td><td><button className="table-detail" onClick={() => { setSelectedManagedEvent(managed); setEventOpen(true); }}>Edit <ChevronRight size={14} /></button></td></tr>)}
+              </tbody></table></div> : <Empty title="No events for now" text="The public website shows the same message. Add and publish an event when you are ready." />}
+            </section>
+          )}
           {section === "volunteers" && (
             <section className="admin-panel">
               <div className="table-toolbar">
@@ -604,10 +655,22 @@ export function AdminWorkspace({ section }: { section: Section }) {
                     onChange={(e) => setSearch(e.target.value)}
                   />
                 </label>
-                <Button onClick={() => { setSelectedVolunteer(undefined); setVolunteerOpen(true); }}>
-                  Add volunteer <ArrowUpRight size={15} />
-                </Button>
+                <div className="toolbar-actions">
+                  <label className="button button-outline button-sm"> <Upload size={14} /> Import CSV<input className="sr-only" type="file" accept=".csv,text/csv" onChange={async (e) => {
+                    const file = e.target.files?.[0]; e.target.value = ""; if (!file) return;
+                    setBusy(true); setError(""); setNotice("");
+                    try {
+                      const records = parseCsv(await file.text());
+                      const fallbackProgram = data.volunteerPrograms[0]?.id ?? "";
+                      const volunteers = records.map((row) => ({ action: "create" as const, program_id: row.program_id || fallbackProgram, name: row.name, email: row.email, phone: row.phone, city: row.city, contributions: (row.contributions || row.role || "").split(/[|;]/).map((item) => item.trim()).filter(Boolean), shift: row.shift || "", notes: row.notes || "", status: row.status?.toUpperCase() === "REVOKED" ? "REVOKED" as const : "ACTIVE" as const }));
+                      const result = await requestJson("/api/admin/volunteers/import", { volunteers });
+                      setNotice(`${result.imported} volunteer(s) imported · ${result.skipped} duplicate(s) skipped.`); await load();
+                    } catch (error) { setError((error as Error).message); } finally { setBusy(false); }
+                  }} /></label>
+                  <Button onClick={() => { setSelectedVolunteer(undefined); setVolunteerOpen(true); }}>Add volunteer <ArrowUpRight size={15} /></Button>
+                </div>
               </div>
+              <p className="import-hint">CSV headers: name, email, phone, city, contributions, shift, notes, status, program_id. Separate multiple contributions with | or ;.</p>
               {(state!.volunteers ?? []).filter((v) =>
                 [v.name, v.email, v.phone, v.city, v.program_id, ...v.contributions, v.shift, v.status]
                   .join(" ").toLowerCase().includes(search.toLowerCase())
@@ -954,8 +1017,39 @@ export function AdminWorkspace({ section }: { section: Section }) {
           onSave={saveVolunteer}
         />
       )}
+      {eventOpen && (
+        <ManagedEventEditor event={selectedManagedEvent} busy={busy} onClose={() => { setEventOpen(false); setSelectedManagedEvent(undefined); }} onSave={saveManagedEvent} />
+      )}
     </>
   );
+}
+
+function ManagedEventEditor({ event, busy, onClose, onSave }: {
+  event?: ManagedEvent;
+  busy: boolean;
+  onClose: () => void;
+  onSave: (command: ManagedEventCommand) => Promise<void>;
+}) {
+  const [formError, setFormError] = useState("");
+  async function submit(formEvent: React.FormEvent<HTMLFormElement>) {
+    formEvent.preventDefault(); setFormError("");
+    const fields = new FormData(formEvent.currentTarget);
+    try {
+      await onSave({ action: event ? "update" : "create", event_id: event?.event_id, slug: String(fields.get("slug") ?? ""), title: String(fields.get("title") ?? ""), type: String(fields.get("type") ?? ""), date: new Date(String(fields.get("date") ?? "")).toISOString(), venue: String(fields.get("venue") ?? ""), description: String(fields.get("description") ?? ""), registration_url: String(fields.get("registration_url") ?? ""), status: String(fields.get("status") ?? "DRAFT") as ManagedEvent["status"] });
+    } catch (error) { setFormError((error as Error).message); }
+  }
+  return <Modal title={event ? `Edit ${event.title}` : "Add event"} onClose={onClose}><form className="admin-form" onSubmit={submit}>
+    <label className="admin-field">Event title<input name="title" required minLength={2} defaultValue={event?.title} /></label>
+    <label className="admin-field">URL slug<input name="slug" required placeholder="community-day-2027" defaultValue={event?.slug} /></label>
+    <label className="admin-field">Type<input name="type" required placeholder="Workshop" defaultValue={event?.type} /></label>
+    <label className="admin-field">Date and time<input name="date" type="datetime-local" required defaultValue={event ? new Date(event.date).toISOString().slice(0, 16) : ""} /></label>
+    <label className="admin-field">Venue<input name="venue" required placeholder="To be announced" defaultValue={event?.venue} /></label>
+    <label className="admin-field">Description<textarea name="description" required minLength={10} rows={4} defaultValue={event?.description} /></label>
+    <label className="admin-field">Registration URL (optional)<input name="registration_url" type="url" placeholder="https://…" defaultValue={event?.registration_url} /></label>
+    <label className="admin-field">Website status<select name="status" defaultValue={event?.status ?? "DRAFT"}><option value="DRAFT">Draft — hidden</option><option value="PUBLISHED">Published — visible</option></select></label>
+    {formError && <div className="form-error" role="alert">{formError}</div>}
+    <div className="modal-actions">{event && <Button type="button" variant="outline" disabled={busy} onClick={async () => { if (!window.confirm(`Remove ${event.title}?`)) return; try { await onSave({ action: "delete", ...event }); } catch (error) { setFormError((error as Error).message); } }}>Remove event</Button>}<Button type="button" variant="outline" onClick={onClose}>Cancel</Button><Button type="submit" disabled={busy}>{busy ? "Saving…" : "Save event"}</Button></div>
+  </form></Modal>;
 }
 
 function VolunteerEditor({ programs, volunteer, busy, onClose, onSave }: {

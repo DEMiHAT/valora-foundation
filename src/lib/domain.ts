@@ -15,6 +15,8 @@ import type {
   VolunteerRegistration,
   PublicVolunteerCredential,
   VolunteerCommand,
+  ManagedEvent,
+  ManagedEventCommand,
 } from "./models";
 export type DomainState = StoreState & {
   matrices: Record<string, EventCategory[]>;
@@ -39,10 +41,59 @@ export function emptyState(): DomainState {
     audit: [],
     outbox: [],
     volunteers: [],
+    managed_events: [],
     counters: {},
     rateLimits: {},
     matrices: {},
   };
+}
+function managedEvents(state: DomainState) {
+  return (state.managed_events ??= []);
+}
+export function managedEventCommand(
+  state: DomainState,
+  command: ManagedEventCommand,
+  runtime: Runtime,
+  actor: string
+): ManagedEvent {
+  const records = managedEvents(state);
+  if (command.action === "delete") {
+    const index = records.findIndex((event) => event.event_id === command.event_id);
+    if (index < 0) throw new DomainError("NOT_FOUND", "Event not found.", 404);
+    const [removed] = records.splice(index, 1);
+    audit(state, runtime, "event-deleted", removed.event_id, actor, removed.title);
+    return removed;
+  }
+  const slug = command.slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  if (!slug) throw new DomainError("SLUG", "Enter a valid event slug.");
+  if (records.some((event) => event.slug === slug && event.event_id !== command.event_id))
+    throw new DomainError("DUPLICATE", "An event with this slug already exists.", 409);
+  const values = {
+    slug,
+    title: command.title.trim(),
+    type: command.type.trim(),
+    date: command.date,
+    venue: command.venue.trim(),
+    description: command.description.trim(),
+    registration_url: (command.registration_url ?? "").trim(),
+    status: command.status ?? ("DRAFT" as const),
+    updated_at: runtime.now(),
+  };
+  if (command.action === "update") {
+    const record = records.find((event) => event.event_id === command.event_id);
+    if (!record) throw new DomainError("NOT_FOUND", "Event not found.", 404);
+    Object.assign(record, values);
+    audit(state, runtime, "event-updated", record.event_id, actor, record.title);
+    return record;
+  }
+  const record: ManagedEvent = {
+    event_id: "VE-" + runtime.uuid(),
+    ...values,
+    created_at: runtime.now(),
+  };
+  records.push(record);
+  audit(state, runtime, "event-created", record.event_id, actor, record.title);
+  return record;
 }
 function volunteers(state: DomainState) {
   return (state.volunteers ??= []);

@@ -160,6 +160,31 @@ export interface VolunteerCommand {
   notes?: string;
   status?: "ACTIVE" | "REVOKED";
 }
+export interface ManagedEvent {
+  event_id: string;
+  slug: string;
+  title: string;
+  type: string;
+  date: string;
+  venue: string;
+  description: string;
+  registration_url: string;
+  status: "DRAFT" | "PUBLISHED";
+  created_at: string;
+  updated_at: string;
+}
+export interface ManagedEventCommand {
+  action: "create" | "update" | "delete";
+  event_id?: string;
+  slug: string;
+  title: string;
+  type: string;
+  date: string;
+  venue: string;
+  description: string;
+  registration_url?: string;
+  status?: "DRAFT" | "PUBLISHED";
+}
 export interface PublicVolunteerCredential {
   volunteer_id: string;
   program: string;
@@ -178,6 +203,7 @@ export interface StoreState {
   audit: Audit[];
   outbox: EmailMessage[];
   volunteers: VolunteerRegistration[];
+  managed_events: ManagedEvent[];
   counters: Record<string, number>;
   rateLimits: Record<string, { count: number; reset: number }>;
 }

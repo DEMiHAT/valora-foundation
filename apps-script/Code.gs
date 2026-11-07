@@ -61,6 +61,7 @@ var PROJECTION_HEADERS = {
   ],
   Audit: ["id", "action", "registration_id", "actor", "at", "detail"],
   Volunteers: ["volunteer_id", "program_id", "name", "email", "phone", "city", "contributions", "shift", "notes", "status", "created_at", "updated_at"],
+  ManagedEvents: ["event_id", "slug", "title", "type", "date", "venue", "description", "registration_url", "status", "created_at", "updated_at"],
   ImportErrors: ["response_id", "event_id", "error", "created_at", "resolved"],
 };
 function properties_() {
@@ -274,6 +275,29 @@ function doPost(e) {
             p.actor || "organiser"
           );
           break;
+        case "volunteer-import":
+          var imported = 0, skipped = 0;
+          (p.commands || []).forEach(function (raw) {
+            var command = ValoraDomain.volunteerCommandSchema.parse(raw);
+            var duplicate = (state.volunteers || []).some(function (item) {
+              return item.program_id === command.program_id && item.email === command.email.trim().toLowerCase();
+            });
+            if (duplicate) skipped++;
+            else {
+              ValoraDomain.volunteerCommand(state, command, volunteerPrograms, runtime, p.actor || "organiser");
+              imported++;
+            }
+          });
+          data = { imported: imported, skipped: skipped };
+          break;
+        case "event-admin":
+          data = ValoraDomain.managedEventCommand(
+            state,
+            ValoraDomain.managedEventCommandSchema.parse(p.command),
+            runtime,
+            p.actor || "organiser"
+          );
+          break;
         case "matrix":
           var event = events.find(function (item) {
             return item.id === p.eventId;
@@ -446,6 +470,7 @@ function replaceRows_(name, records) {
 function project_(state, events) {
   replaceRows_("Participants", state.participants);
   replaceRows_("Volunteers", state.volunteers || []);
+  replaceRows_("ManagedEvents", state.managed_events || []);
   replaceRows_("Registrations", state.registrations);
   replaceRows_(
     "Allocations",

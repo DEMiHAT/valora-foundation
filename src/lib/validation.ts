@@ -71,6 +71,36 @@ export const volunteerCommandSchema = z.object({
   if (["update", "delete"].includes(value.action) && !value.volunteer_id)
     context.addIssue({ code: z.ZodIssueCode.custom, path: ["volunteer_id"], message: "Volunteer ID is required." });
 });
+export const managedEventCommandSchema = z.object({
+  action: z.enum(["create", "update", "delete"]),
+  event_id: z.string().min(1).max(100).optional(),
+  slug: z.string().trim().min(2).max(100),
+  title: z.string().trim().min(2).max(160),
+  type: z.string().trim().min(2).max(80),
+  date: z.string().datetime({ offset: true }),
+  venue: z.string().trim().min(2).max(200),
+  description: z.string().trim().min(10).max(2000),
+  registration_url: z.union([z.literal(""), z.string().url().max(500)]).optional(),
+  status: z.enum(["DRAFT", "PUBLISHED"]).optional(),
+}).superRefine((value, context) => {
+  if (["update", "delete"].includes(value.action) && !value.event_id)
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["event_id"], message: "Event ID is required." });
+});
+
+export const volunteerImportSchema = z.object({
+  volunteers: z.array(z.object({
+    action: z.literal("create"),
+    program_id: z.string().min(1).max(80),
+    name: z.string().trim().min(2).max(120),
+    email: z.string().trim().email().max(254),
+    phone: z.string().trim().regex(/^\+?[\d\s()-]{7,20}$/),
+    city: z.string().trim().min(2).max(100),
+    contributions: z.array(z.string().trim().min(2).max(80)).min(1).max(5),
+    shift: z.string().trim().max(120).optional(),
+    notes: z.string().trim().max(1000).optional(),
+    status: z.enum(["ACTIVE", "REVOKED"]).optional(),
+  })).min(1).max(500),
+});
 
 export const checkoutRegistrationSchema = registrationSchema.omit({
   payment_reference: true, payment_confirmation: true, form_response_id: true, additional_fields: true,

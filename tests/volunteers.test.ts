@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createVolunteer, emptyState, claimEmail, publicVolunteerCredential, volunteerCount, volunteerCommand } from "../src/lib/domain";
+import { createVolunteer, emptyState, claimEmail, publicVolunteerCredential, volunteerCount, volunteerCommand, managedEventCommand } from "../src/lib/domain";
 import type { Runtime } from "../src/lib/domain";
 import type { VolunteerInput, VolunteerProgram } from "../src/lib/models";
 import { buildEmail } from "../src/lib/email-template";
@@ -99,4 +99,23 @@ test("organisers can create, assign, revoke and remove volunteers", () => {
     "volunteer-updated",
     "volunteer-deleted",
   ]);
+});
+
+test("organisers control the public event catalogue independently of historical registrations", () => {
+  const state = emptyState();
+  assert.equal(state.managed_events.length, 0);
+  const event = managedEventCommand(state, {
+    action: "create",
+    slug: "community-day",
+    title: "Community Day",
+    type: "Gathering",
+    date: "2027-01-10T09:00:00+05:30",
+    venue: "Bengaluru",
+    description: "A day for learning and community service.",
+    status: "PUBLISHED",
+  }, runtime, "organiser");
+  assert.equal(event.slug, "community-day");
+  assert.equal(state.managed_events[0].status, "PUBLISHED");
+  managedEventCommand(state, { action: "delete", ...event }, runtime, "organiser");
+  assert.equal(state.managed_events.length, 0);
 });

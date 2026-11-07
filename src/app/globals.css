@@ -3989,6 +3989,20 @@ em {
 .modal-actions > :first-child:not(:last-child) {
   margin-right: auto;
 }
+.toolbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.toolbar-note { display: block; color: #85806f; font-size: 11px; margin-top: 4px; }
+.import-hint { margin: 14px 0 0; color: #777160; font-size: 11px; }
+.public-empty-state { max-width: 720px; padding: 72px 0; }
+.public-empty-state h2 { font-family: var(--serif); color: var(--wine); font-size: clamp(42px, 7vw, 82px); margin: 18px 0; }
+.public-empty-state p { color: #6f6a5c; font-size: 16px; }
+.managed-event-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.managed-event-card { border: 1px solid #d8cfbd; border-radius: 14px; padding: 34px; background: #fffdf8; }
+.managed-event-card h2 { font-family: var(--serif); color: var(--wine); font-size: 38px; margin: 14px 0; }
+.managed-event-card > p { color: #666052; line-height: 1.7; }
+.managed-event-card > div, .event-public-detail > div { display: flex; gap: 18px; flex-wrap: wrap; margin: 24px 0; color: #6c6556; }
+.managed-event-card > div span, .event-public-detail > div span { display: inline-flex; align-items: center; gap: 7px; }
+.event-public-detail { padding-top: 25px; padding-bottom: 55px; }
+@media (max-width: 760px) { .managed-event-grid { grid-template-columns: 1fr; } .managed-event-card { padding: 25px; } }
 .admin-field textarea {
   resize: vertical;
 }

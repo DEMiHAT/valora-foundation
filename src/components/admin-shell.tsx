@@ -13,6 +13,7 @@ import {
   Settings2,
   FileInput,
   History,
+  CalendarDays,
   ArrowUpRight,
   LogOut,
   Menu,
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 const nav = [
   { name: "Overview", href: "/admin", icon: LayoutDashboard },
+  { name: "Events", href: "/admin/events", icon: CalendarDays },
   { name: "Participants", href: "/admin/participants", icon: Users },
   { name: "Volunteers", href: "/admin/volunteers", icon: UserRoundCog },
   { name: "Payments", href: "/admin/payments", icon: CreditCard },
