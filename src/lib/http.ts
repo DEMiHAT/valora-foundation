@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { DomainError } from "./domain";
 import { repository, appUrl } from "./repository";
+import { isSameOrigin } from "./request-origin";
 export function errorResponse(error: unknown) {
   if (error instanceof ZodError)
     return NextResponse.json(
@@ -28,8 +29,7 @@ export function errorResponse(error: unknown) {
   );
 }
 export function sameOrigin(request: Request) {
-  const origin = request.headers.get("origin");
-  if (origin !== appUrl())
+  if (!isSameOrigin(request))
     throw new DomainError("ORIGIN", "Invalid request origin.", 403);
 }
 export async function rate(

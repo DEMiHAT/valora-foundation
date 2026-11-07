@@ -6,6 +6,7 @@ import {
   issueSession,
   readSession,
 } from "../src/lib/security";
+import { isSameOrigin } from "../src/lib/request-origin";
 test("organiser passwords are salted and verified with scrypt", () => {
   const hash = hashPassword("a-long-test-password");
   assert.equal(checkPassword("a-long-test-password", hash), true);
@@ -37,4 +38,19 @@ test("tampered, malformed and expired session cookies are denied", () => {
     null
   );
   assert.equal(readSession(token, "weak", "organiser", 2000), null);
+});
+test("same-origin checks use the public request host", () => {
+  const request = new Request(
+    "https://www.valorafoundation.in/api/volunteers/register",
+    { headers: { origin: "https://www.valorafoundation.in" } }
+  );
+  assert.equal(isSameOrigin(request), true);
+  assert.equal(
+    isSameOrigin(
+      new Request(request.url, {
+        headers: { origin: "https://malicious.example" },
+      })
+    ),
+    false
+  );
 });
