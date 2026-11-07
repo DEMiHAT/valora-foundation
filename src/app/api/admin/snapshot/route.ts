@@ -11,7 +11,7 @@ export async function GET() {
     await requireSession();
     const state = await repository().snapshot();
     const operationalEvents = events.filter((event) =>
-      state.managed_events.some(
+      (state.managed_events ?? []).some(
         (managed) =>
           managed.status === "PUBLISHED" &&
           (managed.event_id === event.id || managed.slug === event.slug)
