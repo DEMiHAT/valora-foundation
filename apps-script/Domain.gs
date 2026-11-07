@@ -41,6 +41,8 @@ var ValoraDomain = (() => {
     settleGatewayPayment: () => settleGatewayPayment,
     updateMatrix: () => updateMatrix,
     view: () => view,
+    volunteerCommand: () => volunteerCommand,
+    volunteerCommandSchema: () => volunteerCommandSchema,
     volunteerCount: () => volunteerCount,
     volunteerSchema: () => volunteerSchema
   });
@@ -82,6 +84,60 @@ var ValoraDomain = (() => {
   }
   function volunteers(state) {
     return state.volunteers ?? (state.volunteers = []);
+  }
+  function volunteerCommand(state, command, programs, runtime, actor) {
+    const program = programs.find((item) => item.id === command.program_id);
+    if (!program) throw new DomainError("NOT_FOUND", "Volunteer programme not found.", 404);
+    const records = volunteers(state);
+    if (command.action === "delete") {
+      const index = records.findIndex((v) => v.volunteer_id === command.volunteer_id);
+      if (index < 0) throw new DomainError("NOT_FOUND", "Volunteer not found.", 404);
+      const [removed] = records.splice(index, 1);
+      audit(state, runtime, "volunteer-deleted", removed.volunteer_id, actor, removed.name);
+      return removed;
+    }
+    const email2 = command.email.trim().toLowerCase();
+    const duplicate = records.find(
+      (v) => v.program_id === command.program_id && v.email === email2 && v.volunteer_id !== command.volunteer_id
+    );
+    if (duplicate)
+      throw new DomainError("DUPLICATE", "A volunteer with this email already exists for the event.", 409);
+    const values = {
+      program_id: command.program_id,
+      name: command.name.trim(),
+      email: email2,
+      phone: command.phone.trim(),
+      city: command.city.trim(),
+      contributions: Array.from(new Set(command.contributions.map((item) => item.trim()).filter(Boolean))),
+      shift: (command.shift ?? "").trim(),
+      notes: (command.notes ?? "").trim(),
+      status: command.status ?? "ACTIVE",
+      updated_at: runtime.now()
+    };
+    if (command.action === "update") {
+      const record2 = records.find((v) => v.volunteer_id === command.volunteer_id);
+      if (!record2) throw new DomainError("NOT_FOUND", "Volunteer not found.", 404);
+      Object.assign(record2, values);
+      audit(state, runtime, "volunteer-updated", record2.volunteer_id, actor, record2.name);
+      return record2;
+    }
+    const record = createVolunteer(
+      state,
+      {
+        program_id: values.program_id,
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        city: values.city,
+        contributions: values.contributions,
+        consent: true
+      },
+      programs,
+      runtime
+    );
+    Object.assign(record, values);
+    audit(state, runtime, "volunteer-created", record.volunteer_id, actor, record.name);
+    return record;
   }
   function findEvent(events, id) {
     const e = events.find((e2) => e2.id === id);
@@ -207,7 +263,17 @@ var ValoraDomain = (() => {
       `${event.shortTitle}: registration received`,
       `Hello ${participant.name},
 
-We have received your registration for ${event.title}. Your payment is pending confirmation. Your registration reference is ${registration.registration_id}. We will email your allocation and digital E-ID after verification.
+We have received your registration for ${event.title}. Your payment is pending confirmation. Your registration reference is ${registration.registration_id}.
+
+Name: ${participant.name}
+Institution: ${participant.institution}
+Class / grade: ${participant.class}
+Email: ${participant.email}
+Phone: ${participant.phone}
+Experience: ${participant.experience}
+Preferences: ${registration.preferences.map((id) => event.categories.find((c) => c.id === id)?.name ?? id).join(", ")}
+Event date: ${event.date}
+Venue: ${event.venue}. Your E-ID card will be sent separately to this email address at a later date.
 
 Valora Foundation`,
       { registration_id: registration.registration_id }
@@ -279,6 +345,39 @@ Valora Foundation`,
       { registration_id: id, credential_version: credential.version }
     );
   }
+  function registrationConfirmedMail(state, id, event, runtime) {
+    const v = view(state, id);
+    email(
+      state,
+      runtime,
+      `confirmed:${id}`,
+      v.participant.email,
+      `${event.shortTitle}: registration confirmed`,
+      `Hello ${v.participant.name},
+
+Your payment has been verified and your registration is confirmed.
+Registration reference: ${id}
+Name: ${v.participant.name}
+Institution: ${v.participant.institution}
+Class / grade: ${v.participant.class}
+Email: ${v.participant.email}
+Phone: ${v.participant.phone}
+Experience: ${v.participant.experience}
+Preferences: ${v.registration.preferences.map((key) => event.categories.find((c) => c.id === key)?.name ?? key).join(", ")}
+Payment reference: ${v.registration.payment_reference}
+Delegate fee: ${event.currency} ${event.fee}
+${v.allocation ? `Committee / category: ${v.allocation.committee}
+Portfolio: ${v.allocation.portfolio}` : "Allocation: pending organiser review"}
+Event: ${event.title}
+Date: ${event.date}
+Venue: ${event.venue}
+
+Your E-ID card will be sent separately to this email address at a later date. No E-ID card has been issued with this confirmation.
+
+Valora Foundation`,
+      { registration_id: id }
+    );
+  }
   function allocate(state, id, events, runtime, appUrl) {
     const { registration } = view(state, id);
     const event = findEvent(events, registration.event_id);
@@ -286,7 +385,7 @@ Valora Foundation`,
       throw new DomainError("UNPAID", "Only verified payments can be allocated.");
     if (state.allocations.some((a) => a.registration_id === id)) {
       registration.registration_status = "ALLOCATED";
-      allocatedMail(state, id, event, runtime, appUrl);
+      registrationConfirmedMail(state, id, event, runtime);
       return view(state, id);
     }
     const categories = state.matrices[event.id] ?? event.categories;
@@ -309,10 +408,11 @@ Valora Foundation`,
         allocated_at: runtime.now()
       });
       registration.registration_status = "ALLOCATED";
-      allocatedMail(state, id, event, runtime, appUrl);
+      registrationConfirmedMail(state, id, event, runtime);
       return view(state, id);
     }
     registration.registration_status = "MANUAL_ALLOCATION_REQUIRED";
+    registrationConfirmedMail(state, id, event, runtime);
     return view(state, id);
   }
   function adminCommand(state, command, events, runtime, actor, appUrl) {
@@ -432,7 +532,8 @@ Valora Foundation`,
           v.credential.version++;
           v.credential.status = "ACTIVE";
         }
-        allocatedMail(state, command.registration_id, event, runtime, appUrl);
+        if (v.credential) allocatedMail(state, command.registration_id, event, runtime, appUrl);
+        else registrationConfirmedMail(state, command.registration_id, event, runtime);
         break;
       }
       case "regenerate-id": {
@@ -749,7 +850,7 @@ Valora Foundation`,
     return view(state, registration.registration_id);
   }
 
-  // ../valora/node_modules/zod/v3/external.js
+  // node_modules/zod/v3/external.js
   var external_exports = {};
   __export(external_exports, {
     BRAND: () => BRAND,
@@ -861,7 +962,7 @@ Valora Foundation`,
     void: () => voidType
   });
 
-  // ../valora/node_modules/zod/v3/helpers/util.js
+  // node_modules/zod/v3/helpers/util.js
   var util;
   (function(util2) {
     util2.assertEqual = (_) => {
@@ -995,7 +1096,7 @@ Valora Foundation`,
     }
   };
 
-  // ../valora/node_modules/zod/v3/ZodError.js
+  // node_modules/zod/v3/ZodError.js
   var ZodIssueCode = util.arrayToEnum([
     "invalid_type",
     "invalid_literal",
@@ -1113,7 +1214,7 @@ Valora Foundation`,
     return error;
   };
 
-  // ../valora/node_modules/zod/v3/locales/en.js
+  // node_modules/zod/v3/locales/en.js
   var errorMap = (issue, _ctx) => {
     let message;
     switch (issue.code) {
@@ -1216,7 +1317,7 @@ Valora Foundation`,
   };
   var en_default = errorMap;
 
-  // ../valora/node_modules/zod/v3/errors.js
+  // node_modules/zod/v3/errors.js
   var overrideErrorMap = en_default;
   function setErrorMap(map) {
     overrideErrorMap = map;
@@ -1225,7 +1326,7 @@ Valora Foundation`,
     return overrideErrorMap;
   }
 
-  // ../valora/node_modules/zod/v3/helpers/parseUtil.js
+  // node_modules/zod/v3/helpers/parseUtil.js
   var makeIssue = (params) => {
     const { data, path, errorMaps, issueData } = params;
     const fullPath = [...path, ...issueData.path || []];
@@ -1335,14 +1436,14 @@ Valora Foundation`,
   var isValid = (x) => x.status === "valid";
   var isAsync = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 
-  // ../valora/node_modules/zod/v3/helpers/errorUtil.js
+  // node_modules/zod/v3/helpers/errorUtil.js
   var errorUtil;
   (function(errorUtil2) {
     errorUtil2.errToObj = (message) => typeof message === "string" ? { message } : message || {};
     errorUtil2.toString = (message) => typeof message === "string" ? message : message?.message;
   })(errorUtil || (errorUtil = {}));
 
-  // ../valora/node_modules/zod/v3/types.js
+  // node_modules/zod/v3/types.js
   var ParseInputLazyPath = class {
     constructor(parent, value, path, key) {
       this._cachedPath = [];
@@ -4840,6 +4941,22 @@ Valora Foundation`,
     reason: external_exports.string().trim().max(500).optional(),
     payment_reference: external_exports.string().trim().max(100).regex(/^[A-Za-z0-9\s-]*$/).optional(),
     payment_confirmation: external_exports.boolean().optional()
+  });
+  var volunteerCommandSchema = external_exports.object({
+    action: external_exports.enum(["create", "update", "delete"]),
+    volunteer_id: external_exports.string().min(1).max(100).optional(),
+    program_id: external_exports.string().min(1).max(80),
+    name: external_exports.string().trim().min(2).max(120),
+    email: external_exports.string().trim().email().max(254),
+    phone: external_exports.string().trim().regex(/^\+?[\d\s()-]{7,20}$/),
+    city: external_exports.string().trim().min(2).max(100),
+    contributions: external_exports.array(external_exports.string().trim().min(2).max(80)).min(1).max(5),
+    shift: external_exports.string().trim().max(120).optional(),
+    notes: external_exports.string().trim().max(1e3).optional(),
+    status: external_exports.enum(["ACTIVE", "REVOKED"]).optional()
+  }).superRefine((value, context) => {
+    if (["update", "delete"].includes(value.action) && !value.volunteer_id)
+      context.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["volunteer_id"], message: "Volunteer ID is required." });
   });
   var checkoutRegistrationSchema = registrationSchema.omit({
     payment_reference: true,

@@ -55,6 +55,22 @@ export const commandSchema = z.object({
     .optional(),
   payment_confirmation: z.boolean().optional(),
 });
+export const volunteerCommandSchema = z.object({
+  action: z.enum(["create", "update", "delete"]),
+  volunteer_id: z.string().min(1).max(100).optional(),
+  program_id: z.string().min(1).max(80),
+  name: z.string().trim().min(2).max(120),
+  email: z.string().trim().email().max(254),
+  phone: z.string().trim().regex(/^\+?[\d\s()-]{7,20}$/),
+  city: z.string().trim().min(2).max(100),
+  contributions: z.array(z.string().trim().min(2).max(80)).min(1).max(5),
+  shift: z.string().trim().max(120).optional(),
+  notes: z.string().trim().max(1000).optional(),
+  status: z.enum(["ACTIVE", "REVOKED"]).optional(),
+}).superRefine((value, context) => {
+  if (["update", "delete"].includes(value.action) && !value.volunteer_id)
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["volunteer_id"], message: "Volunteer ID is required." });
+});
 
 export const checkoutRegistrationSchema = registrationSchema.omit({
   payment_reference: true, payment_confirmation: true, form_response_id: true, additional_fields: true,

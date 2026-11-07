@@ -23,12 +23,16 @@ import type {
   RegistrationView,
   AdminCommand,
   EventCategory,
+  VolunteerRegistration,
+  VolunteerCommand,
+  VolunteerProgram,
 } from "@/lib/models";
 import { Modal } from "./modal";
 import { Button } from "./ui/button";
 type Section =
   | "overview"
   | "participants"
+  | "volunteers"
   | "payments"
   | "allocations"
   | "ids"
@@ -39,6 +43,7 @@ type Snapshot = {
   state: DomainState;
   totals: Record<string, {total: number; verified: number; pending: number; allocated: number; unallocated: number}>;
   events: (FoundationEvent & { matrixApproved: boolean })[];
+  volunteerPrograms: VolunteerProgram[];
   provider: string;
   paymentMode: "test" | "live" | "unconfigured";
   checkoutReady: boolean;
@@ -55,6 +60,10 @@ const titles: Record<Section, { title: string; description: string }> = {
     title: "The people behind the event.",
     description:
       "Search registrations and view participant, payment, allocation and E-ID details.",
+  },
+  volunteers: {
+    title: "Your volunteer team, organised.",
+    description: "Add volunteers, assign roles and shifts, and keep availability current.",
   },
   payments: {
     title: "Verify. Confirm. Allocate.",
@@ -137,6 +146,8 @@ export function AdminWorkspace({ section }: { section: Section }) {
     [busy, setBusy] = useState(false),
     [notice, setNotice] = useState(""),
     [importOpen, setImportOpen] = useState(false);
+  const [volunteerOpen, setVolunteerOpen] = useState(false),
+    [selectedVolunteer, setSelectedVolunteer] = useState<VolunteerRegistration>();
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -186,6 +197,8 @@ export function AdminWorkspace({ section }: { section: Section }) {
     const match = [
       v.participant.name,
       v.participant.email,
+      v.participant.phone,
+      ...Object.values(v.registration.additional_fields),
       v.participant.institution,
       v.registration.registration_id,
       v.registration.payment_reference,
@@ -201,9 +214,10 @@ export function AdminWorkspace({ section }: { section: Section }) {
       v.registration.payment_status === filter ||
       v.registration.registration_status === filter ||
       (filter === "unallocated" && !v.allocation) ||
+      (filter === "NOT_ISSUED" && !v.credential) ||
       (filter === "ACTIVE" && v.credential?.status === "ACTIVE") ||
       (filter === "REVOKED" && v.credential?.status === "REVOKED");
-    return match && stateMatch && (section !== "ids" || v.credential);
+    return match && stateMatch;
   });
   const current = rows.find((r) => r.registration.registration_id === selected);
   async function action(command: AdminCommand) {
@@ -217,11 +231,28 @@ export function AdminWorkspace({ section }: { section: Section }) {
           ? response.result.registration.registration_status ===
             "MANUAL_ALLOCATION_REQUIRED"
             ? "Payment verified. The selected committees are full; assign a portfolio manually."
-            : "Payment verified. Allocation and E-ID processing completed."
+            : "Payment verified. Registration confirmation queued; E-ID awaits admin issuance."
           : command.action === "retry-email"
           ? "Email queued for delivery."
           : "The change has been saved."
       );
+      await load();
+    } catch (e) {
+      setError((e as Error).message);
+      throw e;
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function saveVolunteer(command: VolunteerCommand) {
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      await requestJson("/api/admin/volunteers", command);
+      setVolunteerOpen(false);
+      setSelectedVolunteer(undefined);
+      setNotice(command.action === "delete" ? "Volunteer removed." : "Volunteer saved.");
       await load();
     } catch (e) {
       setError((e as Error).message);
@@ -246,6 +277,9 @@ export function AdminWorkspace({ section }: { section: Section }) {
       "committee",
       "portfolio",
       "valora_e_id",
+      "created_at",
+      "form_response_id",
+      "additional_fields",
     ];
     const csv = [
       columns,
@@ -264,6 +298,9 @@ export function AdminWorkspace({ section }: { section: Section }) {
         v.allocation?.committee ?? "",
         v.allocation?.portfolio ?? "",
         v.credential?.credential_id ?? "",
+        v.registration.created_at,
+        v.registration.form_response_id,
+        JSON.stringify(v.registration.additional_fields),
       ]),
     ]
       .map((line) =>
@@ -524,7 +561,7 @@ export function AdminWorkspace({ section }: { section: Section }) {
                 >
                   <option value="all">All statuses</option>
                   {(section === "ids"
-                    ? ["ACTIVE", "REVOKED"]
+                    ? ["NOT_ISSUED", "ACTIVE", "REVOKED"]
                     : [
                         "PENDING_PAYMENT",
                         "PAYMENT_VERIFIED",
@@ -553,6 +590,48 @@ export function AdminWorkspace({ section }: { section: Section }) {
                 onSelect={setSelected}
                 section={section}
               />
+            </section>
+          )}
+          {section === "volunteers" && (
+            <section className="admin-panel">
+              <div className="table-toolbar">
+                <label className="search-input">
+                  <Search size={16} />
+                  <input
+                    placeholder="Search volunteer, programme, contribution…"
+                    aria-label="Search volunteers"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </label>
+                <Button onClick={() => { setSelectedVolunteer(undefined); setVolunteerOpen(true); }}>
+                  Add volunteer <ArrowUpRight size={15} />
+                </Button>
+              </div>
+              {(state!.volunteers ?? []).filter((v) =>
+                [v.name, v.email, v.phone, v.city, v.program_id, ...v.contributions, v.shift, v.status]
+                  .join(" ").toLowerCase().includes(search.toLowerCase())
+              ).length ? (
+                <div className="admin-table-wrap">
+                  <table className="admin-table">
+                    <thead><tr><th>Volunteer</th><th>Role</th><th>Shift</th><th>Status</th><th>Details</th></tr></thead>
+                    <tbody>
+                      {(state!.volunteers ?? []).filter((v) =>
+                        [v.name, v.email, v.phone, v.city, v.program_id, ...v.contributions, v.shift, v.status]
+                          .join(" ").toLowerCase().includes(search.toLowerCase())
+                      ).map((v) => (
+                        <tr key={v.volunteer_id}>
+                          <td><strong>{v.name}</strong><span>{v.email} · {v.phone}</span></td>
+                          <td><strong>{data.volunteerPrograms.find((p) => p.id === v.program_id)?.title ?? v.program_id}</strong><span>{v.contributions.join(", ")}</span></td>
+                          <td>{v.shift || "Not assigned"}</td>
+                          <td><StatusBadge value={v.status} /></td>
+                          <td><button className="table-detail" onClick={() => { setSelectedVolunteer(v); setVolunteerOpen(true); }}>Edit <ChevronRight size={14} /></button></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : <Empty title="No volunteers to show" text="Add your first volunteer and assign their event role and shift." />}
             </section>
           )}
           {section === "allocations" && (
@@ -866,7 +945,70 @@ export function AdminWorkspace({ section }: { section: Section }) {
           }}
         />
       )}
+      {volunteerOpen && event && (
+        <VolunteerEditor
+          programs={data?.volunteerPrograms ?? []}
+          volunteer={selectedVolunteer}
+          busy={busy}
+          onClose={() => { setVolunteerOpen(false); setSelectedVolunteer(undefined); }}
+          onSave={saveVolunteer}
+        />
+      )}
     </>
+  );
+}
+
+function VolunteerEditor({ programs, volunteer, busy, onClose, onSave }: {
+  programs: VolunteerProgram[];
+  volunteer?: VolunteerRegistration;
+  busy: boolean;
+  onClose: () => void;
+  onSave: (command: VolunteerCommand) => Promise<void>;
+}) {
+  const [formError, setFormError] = useState("");
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFormError("");
+    const fields = new FormData(event.currentTarget);
+    try {
+      await onSave({
+        action: volunteer ? "update" : "create",
+        volunteer_id: volunteer?.volunteer_id,
+        program_id: String(fields.get("program_id") ?? ""),
+        name: String(fields.get("name") ?? ""),
+        email: String(fields.get("email") ?? ""),
+        phone: String(fields.get("phone") ?? ""),
+        city: String(fields.get("city") ?? ""),
+        contributions: String(fields.get("contributions") ?? "").split(",").map((item) => item.trim()).filter(Boolean),
+        shift: String(fields.get("shift") ?? ""),
+        notes: String(fields.get("notes") ?? ""),
+        status: String(fields.get("status") ?? "ACTIVE") as VolunteerRegistration["status"],
+      });
+    } catch (error) { setFormError((error as Error).message); }
+  }
+  return (
+    <Modal title={volunteer ? `Edit ${volunteer.name}` : "Add volunteer"} onClose={onClose}>
+      <form className="admin-form" onSubmit={submit}>
+        <label className="admin-field">Name<input name="name" required minLength={2} defaultValue={volunteer?.name} /></label>
+        <label className="admin-field">Email<input name="email" type="email" required defaultValue={volunteer?.email} /></label>
+        <label className="admin-field">Phone<input name="phone" type="tel" required defaultValue={volunteer?.phone} /></label>
+        <label className="admin-field">Programme<select name="program_id" required defaultValue={volunteer?.program_id ?? programs[0]?.id}>{programs.map((program) => <option value={program.id} key={program.id}>{program.title}</option>)}</select></label>
+        <label className="admin-field">City<input name="city" required defaultValue={volunteer?.city} /></label>
+        <label className="admin-field">Contributions<input name="contributions" required placeholder="Event volunteering, Social media" defaultValue={volunteer?.contributions.join(", ")} /></label>
+        <label className="admin-field">Shift<input name="shift" placeholder="8:00 AM–1:00 PM" defaultValue={volunteer?.shift} /></label>
+        <label className="admin-field">Status<select name="status" defaultValue={volunteer?.status ?? "ACTIVE"}><option value="ACTIVE">Active</option><option value="REVOKED">Revoked</option></select></label>
+        <label className="admin-field">Notes<textarea name="notes" rows={3} defaultValue={volunteer?.notes} /></label>
+        {formError && <div className="form-error" role="alert">{formError}</div>}
+        <div className="modal-actions">
+          {volunteer && <Button type="button" variant="outline" disabled={busy} onClick={async () => {
+            if (!window.confirm(`Remove ${volunteer.name}?`)) return;
+            try { await onSave({ action: "delete", ...volunteer }); } catch (error) { setFormError((error as Error).message); }
+          }}>Remove volunteer</Button>}
+          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+          <Button type="submit" disabled={busy}>{busy ? "Saving…" : "Save volunteer"}</Button>
+        </div>
+      </form>
+    </Modal>
   );
 }
 function InfoIcon() {
@@ -1301,7 +1443,10 @@ function ParticipantDetail({
             </p>
           </>
         ) : (
-          <p>Issued automatically after payment verification and allocation.</p>
+          <>
+            <p>E-ID not issued. Registration details are emailed first; issue the card when ready.</p>
+            <Button size="sm" disabled={busy || row.registration.payment_status !== "PAYMENT_VERIFIED" || !row.allocation} onClick={() => run("regenerate-id")}>Issue &amp; email E-ID</Button>
+          </>
         )}
       </section>
       <label className="admin-field">

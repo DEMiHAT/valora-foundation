@@ -25,16 +25,19 @@ test("webhook signature authenticates the exact raw body", () => {
   assert.equal(verifyHmac(body, signature, secret), true);
   assert.equal(verifyHmac(body + " ", signature, secret), false);
 });
-test("captured payment allocates and issues one E-ID across webhook/browser replays", () => {
+test("captured payment confirms registration without issuing E-ID across webhook/browser replays", () => {
   const state = setup();
   const result = settleGatewayPayment(state, payment, events, runtime, "https://valora.example");
   assert.equal(result.registration.payment_status, "PAYMENT_VERIFIED");
   assert.equal(result.registration.payment_reference, "pay_Test123");
   assert.equal(result.allocation?.committee_id, "who");
-  assert.ok(result.credential);
+  assert.equal(result.credential, undefined);
+  assert.match(state.outbox[1].body, /E-ID card will be sent separately/);
+  assert.match(state.outbox[1].body, /pay_Test123/);
+  assert.equal(state.outbox[1].credential_version, undefined);
   const mailCount = state.outbox.length;
   settleGatewayPayment(state, payment, events, runtime, "https://valora.example");
-  assert.equal(state.credentials.length, 1);
+  assert.equal(state.credentials.length, 0);
   assert.equal(state.allocations.length, 1);
   assert.equal(state.outbox.length, mailCount);
   assert.equal(state.audit.filter(a => a.action === "razorpay-payment-captured").length, 1);
@@ -47,9 +50,9 @@ test("one captured delegation payment confirms every student exactly once", () =
   assert.throws(() => settleGatewayPayment(state, {...groupPayment, amount:99900}, events, runtime, "https://valora.example"));
   settleGatewayPayment(state, groupPayment, events, runtime, "https://valora.example");
   assert.equal(state.registrations.filter(r => r.payment_status === "PAYMENT_VERIFIED").length, 3);
-  assert.equal(state.credentials.length, 3);
+  assert.equal(state.credentials.length, 0);
   settleGatewayPayment(state, groupPayment, events, runtime, "https://valora.example");
-  assert.equal(state.credentials.length, 3);
+  assert.equal(state.credentials.length, 0);
   assert.equal(state.audit.filter(a => a.action === "razorpay-payment-captured").length, 3);
 });
 test("a duplicate email cannot create a partial delegation roster", () => {
@@ -87,4 +90,27 @@ test("public checkout requires consent and strips submitted payment evidence", (
   assert.equal("payment_reference" in parsed, false);
   assert.equal("additional_fields" in parsed, false);
   assert.throws(() => checkoutRegistrationSchema.parse({...input, accepted_terms: false}));
+});
+
+test("registration confirmation contains details without credentials and explicit admin issuance is required", async () => {
+  const { claimEmail } = await import("../src/lib/domain");
+  const { buildEmail } = await import("../src/lib/email-template");
+  const state = setup();
+  const id = state.registrations[0].registration_id;
+  assert.throws(() => adminCommand(state, {action: "regenerate-id", registration_id:id}, events, runtime, "admin", "https://valora.example"), /Payment and allocation/);
+  settleGatewayPayment(state, payment, events, runtime, "https://valora.example");
+  for (let i = 0; i < 2; i++) {
+    const envelope = claimEmail(state, events, runtime)!;
+    assert.equal(envelope.credential, undefined);
+    const mail = await buildEmail(envelope, "https://valora.example", "events@valora.example");
+    assert.equal(mail.attachments, undefined);
+    assert.match(envelope.message.body, /Test School/);
+    assert.match(envelope.message.body, /E-ID card will be sent separately/);
+  }
+  adminCommand(state, {action:"manual-allocate",registration_id:id,committee_id:"unga",portfolio:"India",reason:"Delegate requested change"},events,runtime,"admin","https://valora.example");
+  assert.equal(state.credentials.length, 0);
+  const issued = adminCommand(state, {action:"regenerate-id",registration_id:id}, events,runtime,"admin","https://valora.example");
+  assert.ok(issued.credential);
+  assert.equal(state.credentials.length, 1);
+  assert.equal(claimEmail(state,events,runtime)?.credential?.portfolio,"India");
 });

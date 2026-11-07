@@ -214,12 +214,14 @@ test("actual Apps Script adapter imports, verifies, allocates, projects and issu
   const imported = h.call("import", { input: response, actor: "test" });
   assert.equal(imported.ok, true);
   const id = imported.data.registration.registration_id;
-  const paid = h.call("command", {
+  let paid = h.call("command", {
     command: { action: "verify-payment", registration_id: id },
     actor: "organiser",
   });
   assert.equal(paid.ok, true);
   assert.equal(paid.data.allocation.portfolio, "India");
+  assert.equal(paid.data.credential, undefined);
+  paid = h.call("command", {command: {action: "regenerate-id", registration_id: id}, actor: "organiser"});
   assert.equal(paid.data.credential.credential_id, "VM26-00001");
   assert.equal(h.sheets.get("Participants")!.rows.length, 2);
   assert.equal(h.sheets.get("Allocations")!.rows.length, 2);
@@ -263,7 +265,7 @@ test("a projection failure does not lose the committed payment or create a dupli
   assert.equal(h.props.get("PROJECTION_ERROR"), undefined);
   const state = h.call("snapshot").data;
   assert.equal(state.allocations.length, 1);
-  assert.equal(state.credentials.length, 1);
+  assert.equal(state.credentials.length, 0);
   assert.equal(h.sheets.get("Allocations")!.rows.length, 2);
 });
 test("failure before snapshot commit leaves the previous version authoritative", () => {
@@ -361,10 +363,10 @@ test("Apps Script settles captured Razorpay payments atomically across callback/
   assert.equal(settled.ok, true);
   assert.equal(settled.data.registration.payment_status, "PAYMENT_VERIFIED");
   assert.equal(settled.data.allocation.committee_id, "who");
-  assert.equal(settled.data.credential.credential_id, "VM26-00001");
+  assert.equal(settled.data.credential, undefined);
   assert.equal(h.call("settle-payment", {payment}).ok, true);
   const state = h.call("snapshot").data;
-  assert.equal(state.credentials.length, 1);
+  assert.equal(state.credentials.length, 0);
   assert.equal(state.allocations.length, 1);
   assert.equal(state.outbox.length, 2);
   assert.equal(h.call("command", {command: {action: "verify-payment", registration_id: imported.data.registration.registration_id}, actor: "organiser"}).ok, false);

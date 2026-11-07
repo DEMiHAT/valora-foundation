@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useRef } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { motion, useMotionValue, useSpring, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, RotateCw, GraduationCap, Utensils, NotebookPen, Award } from "lucide-react";
+import { RotateCw, GraduationCap, Utensils, NotebookPen, Award } from "lucide-react";
 import type { FoundationEvent } from "@/lib/models";
 
 export function DelegateExperience({event, sceneUrl}: {event: FoundationEvent; sceneUrl?: string}) {
@@ -51,7 +50,7 @@ export function DelegateExperience({event, sceneUrl}: {event: FoundationEvent; s
     </div>
     <div className="kit-copy"><div className="eyebrow"><span />VALORA MUN 2026</div><h2>The delegate<br /><em>experience.</em></h2>
       <div className="kit-inclusions">{items.map(item => <div className="kit-inclusion" key={item.title}><item.icon size={21} strokeWidth={1.3} /><div><strong>{item.title}</strong><span>{item.note}</span></div></div>)}</div>
-      <div className="kit-copy-footer"><span>₹{event.fee.toLocaleString("en-IN")} <small>/ delegate</small></span><Link href={`/events/${event.slug}/register`} className="text-link">Register <ArrowUpRight size={17} /></Link></div>
+      <div className="kit-copy-footer"><span>₹{event.fee.toLocaleString("en-IN")} <small>/ delegate</small></span><span className="text-link button-coming-soon" aria-disabled="true">Registration coming soon</span></div>
     </div>
   </div></section>;
 }

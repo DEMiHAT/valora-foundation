@@ -52,12 +52,17 @@ function verify(
     "https://valora.example"
   );
 }
+function issue(state: ReturnType<typeof emptyState>, id: string, eventList = events) {
+  return adminCommand(state, {action: "regenerate-id", registration_id: id}, eventList, runtime, "test-organiser", "https://valora.example");
+}
 test("form import → verified payment → ordered portfolio → E-ID → safe verification → email queue", () => {
   const state = emptyState(),
     one = createRegistration(state, input(1), events, runtime, "google-form");
   assert.equal(one.registration.payment_status, "PENDING_PAYMENT");
   assert.equal(state.credentials.length, 0);
-  const paid = verify(state, one.registration.registration_id);
+  verify(state, one.registration.registration_id);
+  assert.equal(state.credentials.length, 0);
+  const paid = issue(state, one.registration.registration_id);
   assert.equal(paid.allocation!.committee_id, "who");
   assert.equal(paid.allocation!.portfolio, "India");
   assert.equal(paid.credential!.credential_id, "VM26-00001");
@@ -72,8 +77,8 @@ test("form import → verified payment → ordered portfolio → E-ID → safe v
     "token",
   ])
     assert.equal(key in visible, false);
-  assert.equal(state.outbox.length, 2);
-  assert.equal(state.outbox[1].credential_version, 1);
+  assert.equal(state.outbox.length, 3);
+  assert.equal(state.outbox[2].credential_version, 1);
 });
 test("duplicate submissions and repeated verification do not duplicate allocations, IDs or messages", () => {
   const s = emptyState(),
@@ -95,7 +100,7 @@ test("duplicate submissions and repeated verification do not duplicate allocatio
   assert.equal(s.participants.length, 1);
   assert.equal(s.registrations.length, 1);
   assert.equal(s.allocations.length, 1);
-  assert.equal(s.credentials.length, 1);
+  assert.equal(s.credentials.length, 0);
   assert.equal(s.outbox.length, 2);
 });
 test("unverified registrations cannot allocate; payment confirmation is required", () => {
@@ -145,7 +150,7 @@ test("full committee falls back to next preference, then manual allocation", () 
     s.registrations[3].registration_status,
     "MANUAL_ALLOCATION_REQUIRED"
   );
-  assert.equal(s.credentials.length, 3);
+  assert.equal(s.credentials.length, 0);
 });
 test("all 180 portfolios are unique and preference capacity remains bounded", () => {
   const s = emptyState();
@@ -156,7 +161,8 @@ test("all 180 portfolios are unique and preference capacity remains bounded", ()
       .slice(offset, offset + 3)
       .map((c) => c.id);
     const v = createRegistration(s, i, events, runtime, "form");
-    verify(s, v.registration.registration_id);
+    const paid = verify(s, v.registration.registration_id);
+    if (paid.allocation) issue(s, v.registration.registration_id);
   }
   assert.equal(s.allocations.length, 180);
   assert.equal(
@@ -176,6 +182,8 @@ test("manual override protects occupied portfolios and rotates old QR", () => {
     two = createRegistration(s, input(2), events, runtime, "form");
   verify(s, one.registration.registration_id);
   verify(s, two.registration.registration_id);
+  issue(s, one.registration.registration_id);
+  issue(s, two.registration.registration_id);
   const old = s.credentials[1].token;
   assert.throws(
     () =>
@@ -217,7 +225,8 @@ test("manual override protects occupied portfolios and rotates old QR", () => {
 test("revoked and expired E-IDs cannot verify as active; secure token is mandatory", () => {
   const s = emptyState(),
     v = createRegistration(s, input(1), events, runtime, "form");
-  const c = verify(s, v.registration.registration_id).credential!;
+  verify(s, v.registration.registration_id);
+  const c = issue(s, v.registration.registration_id).credential!;
   assert.equal(
     publicCredential(s, c.token, events, "2026-11-15T00:00:00Z")!.status,
     "EXPIRED"
@@ -299,6 +308,7 @@ test("participant identity spans future events without sharing capacity", () => 
   const s = emptyState();
   let v = createRegistration(s, input(1), [...events, future], runtime, "form");
   verify(s, v.registration.registration_id, [...events, future]);
+  issue(s, v.registration.registration_id, [...events, future]);
   v = createRegistration(
     s,
     { ...input(1, future), form_response_id: "future-1" },
@@ -307,6 +317,7 @@ test("participant identity spans future events without sharing capacity", () => 
     "form"
   );
   verify(s, v.registration.registration_id, [...events, future]);
+  issue(s, v.registration.registration_id, [...events, future]);
   assert.equal(s.participants.length, 1);
   assert.equal(s.allocations.length, 2);
   assert.equal(s.credentials[1].credential_id, "VF27-00001");
@@ -396,6 +407,7 @@ test("outbox skips obsolete E-card versions after regeneration and revoked IDs",
   const s = emptyState(),
     v = createRegistration(s, input(1), events, runtime, "form");
   verify(s, v.registration.registration_id);
+  issue(s, v.registration.registration_id);
   adminCommand(
     s,
     {
@@ -408,8 +420,9 @@ test("outbox skips obsolete E-card versions after regeneration and revoked IDs",
     "https://valora.example"
   );
   claimEmail(s, events, runtime);
+  claimEmail(s, events, runtime);
   const current = claimEmail(s, events, runtime)!;
-  assert.equal(s.outbox[1].status, "SKIPPED");
+  assert.equal(s.outbox[2].status, "SKIPPED");
   assert.equal(current.credential!.credential_id, "VM26-00001");
   assert.equal(current.message.credential_version, 2);
 });
@@ -418,7 +431,8 @@ test("explicit E-card resend preserves the original delivery record", () => {
   const s = emptyState(),
     v = createRegistration(s, input(1), events, runtime, "form");
   verify(s, v.registration.registration_id);
-  for (let i = 0; i < 2; i++) {
+  issue(s, v.registration.registration_id);
+  for (let i = 0; i < 3; i++) {
     const mail = claimEmail(s, events, runtime)!;
     finishEmail(
       s,
@@ -436,8 +450,8 @@ test("explicit E-card resend preserves the original delivery record", () => {
     "admin",
     "https://valora.example"
   );
-  assert.equal(s.outbox.length, 3);
+  assert.equal(s.outbox.length, 4);
   assert.equal(s.outbox[1].status, "SENT");
-  assert.equal(s.outbox[2].status, "PENDING");
-  assert.notEqual(s.outbox[1].id, s.outbox[2].id);
+  assert.equal(s.outbox[3].status, "PENDING");
+  assert.notEqual(s.outbox[2].id, s.outbox[3].id);
 });

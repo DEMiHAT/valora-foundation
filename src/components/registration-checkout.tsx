@@ -1,4 +1,5 @@
 "use client";
+import { checkoutMethods } from "@/lib/checkout-methods";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowUpRight, ShieldCheck, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
@@ -53,7 +54,7 @@ export function RegistrationCheckout({ event, ready, refundPolicy, testMode = fa
     if (await checkStatus(checkout)) { setBusy(false); return; }
     await loadCheckout();
     if (!window.Razorpay) throw new Error("Checkout is unavailable. Please retry.");
-    const gateway = new window.Razorpay({ key: checkout.key, order_id: checkout.order_id, amount: checkout.amount, currency: checkout.currency,
+    const gateway = new window.Razorpay({...checkoutMethods, key: checkout.key, order_id: checkout.order_id, amount: checkout.amount, currency: checkout.currency,
       name: "Valora Foundation", description: `${event.shortTitle} · Delegate registration`, prefill,
       theme: {color: "#650b25"},
       modal: {ondismiss: () => { setBusy(false); inFlight.current = false; setNotice("Your registration is saved. You can resume this checkout whenever you’re ready."); }},
@@ -81,7 +82,7 @@ export function RegistrationCheckout({ event, ready, refundPolicy, testMode = fa
       await open(checkout, {name: fields.name, email: fields.email, contact: fields.phone});
     } catch (e) { setError((e as Error).message); setBusy(false); inFlight.current = false; }
   }
-  if (paid) return <div className="checkout-success"><CheckCircle2 size={48} strokeWidth={1.2} /><h2>{testMode ? "Test payment confirmed." : "Payment confirmed."}</h2>{testMode && <p>This was a simulated payment. No conference seat has been reserved.</p>}<p>{testMode ? "Your test registration and allocation are available in the organiser dashboard." : resultStatus === "MANUAL_ALLOCATION_REQUIRED" ? "Your chosen committees are full. Our team will arrange your allocation and email your E-ID." : "Your committee allocation and digital E-ID will be sent to your registered email. Check your inbox and spam folder."}</p><div className="checkout-reference">Registration reference<strong>{session?.registration_id}</strong></div><Link href={`/events/${event.slug}`} className="button button-primary">Conference details <ArrowUpRight size={18} /></Link></div>;
+  if (paid) return <div className="checkout-success"><CheckCircle2 size={48} strokeWidth={1.2} /><h2>{testMode ? "Test payment confirmed." : "Payment confirmed."}</h2>{testMode && <p>This was a simulated payment. No conference seat has been reserved.</p>}<p>{testMode ? "Your test registration and allocation are available in the organiser dashboard." : resultStatus === "MANUAL_ALLOCATION_REQUIRED" ? "Your chosen committees are full. Our team will arrange your allocation. Your registration details will be emailed now; your E-ID card will be emailed separately at a later date." : "Your registration details will be emailed to you. Your E-ID card will be sent separately to the same email address at a later date. Check your inbox and spam folder."}</p><div className="checkout-reference">Registration reference<strong>{session?.registration_id}</strong></div><Link href={`/events/${event.slug}`} className="button button-primary">Conference details <ArrowUpRight size={18} /></Link></div>;
   return <div className="checkout-panel"><div className="checkout-panel-heading"><h2>{session ? "Resume registration" : "Delegate registration"}</h2><p>{session ? "Your registration is saved in this browser tab. Resume your payment or check its status." : `Enter your details and rank ${event.preferenceCount} committee preferences.`}</p></div>
     {testMode && <div className="important-note" role="status"><ShieldCheck size={22}/><div><h3>Test payments only</h3><p>No real money is charged. Test registrations do not reserve conference seats.</p></div></div>}
     {!ready && <div className="important-note"><ShieldCheck size={22} /><div><h3>Registration opens soon</h3><p>Payments are not open yet. Contact Valora for registration updates.</p></div></div>}
@@ -93,7 +94,7 @@ export function RegistrationCheckout({ event, ready, refundPolicy, testMode = fa
       {error && <p className="checkout-error" role="alert">{error}</p>}{notice && <p className="checkout-notice" role="status">{notice}</p>}
       <button type="submit" className="button button-primary checkout-pay" disabled={!ready || busy}>{busy ? <><Loader2 size={18} className="checkout-spinner" />Please wait…</> : <>{session ? "Resume secure payment" : `Continue to payment · ₹${event.fee.toLocaleString("en-IN")}`}<ArrowUpRight size={18} /></>}</button>
       {session && <><button type="button" className="checkout-status" onClick={refresh} disabled={busy}><RefreshCw size={15} />Check payment status</button><div className="checkout-reference">Your saved registration<strong>{session.registration_id}</strong></div></>}
-      <span className="checkout-security"><ShieldCheck size={15} />Secure checkout by Razorpay · UPI, cards & more</span>
+      <span className="checkout-security"><ShieldCheck size={15} />Secure checkout by Razorpay · UPI, cards, netbanking & wallets</span>
     </form>
   </div>;
 }

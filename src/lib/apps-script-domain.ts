@@ -1,2 +1,2 @@
 export * from "./domain";
-export { registrationSchema, commandSchema, capturedPaymentSchema, volunteerSchema } from "./validation";
+export { registrationSchema, commandSchema, volunteerCommandSchema, capturedPaymentSchema, volunteerSchema } from "./validation";

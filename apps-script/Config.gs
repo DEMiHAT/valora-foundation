@@ -364,7 +364,7 @@ var VALORA_EVENTS = [
       },
       {
         "question": "When will I receive my delegate ID?",
-        "answer": "After payment verification and committee allocation, your digital Valora E-ID will be issued with a secure verification QR."
+        "answer": "After payment verification, you will receive an email with your registration details. Your digital Valora E-ID will be emailed separately at a later date."
       },
       {
         "question": "Can I choose a country or portfolio?",

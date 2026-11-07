@@ -60,7 +60,7 @@ var PROJECTION_HEADERS = {
     "provider_message_id",
   ],
   Audit: ["id", "action", "registration_id", "actor", "at", "detail"],
-  Volunteers: ["volunteer_id", "program_id", "name", "email", "phone", "city", "contributions", "status", "created_at"],
+  Volunteers: ["volunteer_id", "program_id", "name", "email", "phone", "city", "contributions", "shift", "notes", "status", "created_at", "updated_at"],
   ImportErrors: ["response_id", "event_id", "error", "created_at", "resolved"],
 };
 function properties_() {
@@ -265,6 +265,15 @@ function doPost(e) {
             origin
           );
           break;
+        case "volunteer-admin":
+          data = ValoraDomain.volunteerCommand(
+            state,
+            ValoraDomain.volunteerCommandSchema.parse(p.command),
+            volunteerPrograms,
+            runtime,
+            p.actor || "organiser"
+          );
+          break;
         case "matrix":
           var event = events.find(function (item) {
             return item.id === p.eventId;
@@ -436,6 +445,7 @@ function replaceRows_(name, records) {
 }
 function project_(state, events) {
   replaceRows_("Participants", state.participants);
+  replaceRows_("Volunteers", state.volunteers || []);
   replaceRows_("Registrations", state.registrations);
   replaceRows_(
     "Allocations",

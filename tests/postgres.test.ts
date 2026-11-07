@@ -14,7 +14,7 @@ test("Postgres persists registrations, isolates test data, and serializes paymen
   const sql = postgres(url, {onnotice: () => {}});
   const store = createPostgresStore(url, "test"), live = createPostgresStore(url, "live");
   try {
-    await sql.unsafe(await readFile("supabase/migrations/20261006000100_registration_store.sql", "utf8"));
+    await sql.unsafe("drop schema if exists valora_private cascade; " + await readFile("supabase/migrations/20261006000100_registration_store.sql", "utf8"));
     const runtime: Runtime = {uuid:randomUUID, token:()=>randomBytes(32).toString("hex"), now:()=>new Date().toISOString()};
     const input = {event_id:events[0].id,name:"Database Test",institution:"Test School",class:"10",email:"db-test@example.org",phone:"+919000000000",experience:"Beginner" as const,preferences:["who","unga","unhrc"],payment_reference:"",payment_confirmation:false,form_response_id:"db-test-order",additional_fields:{gateway_order_id:"order_DbTest",payment_provider:"razorpay"}};
     await Promise.all(Array.from({length:12}, () => store.transact(s => createRegistration(s,input,events,runtime,"website-checkout"))));
@@ -24,13 +24,13 @@ test("Postgres persists registrations, isolates test data, and serializes paymen
     const payment = {id:"pay_DbTest",order_id:"order_DbTest",amount:99900,currency:"INR",status:"captured"};
     await Promise.all(Array.from({length:12}, () => store.transact(s => settleGatewayPayment(s,payment,events,runtime,"https://valora.example"))));
     const state = await store.read();
-    assert.equal(state.credentials.length,1);
+    assert.equal(state.credentials.length,0);
     assert.equal(state.allocations.length,1);
     assert.deepEqual(registrationTotals(state,events[0].id),{total:1,verified:1,pending:0,allocated:1,unallocated:0});
     assert.equal((await live.read()).registrations.length,0);
     const attempts = await Promise.all(Array.from({length:20},()=>store.rateLimit("concurrent-test",5,60000)));
     assert.equal(attempts.filter(Boolean).length,5);
-    await sql`create role valora_untrusted`;
+    await sql.unsafe("drop role if exists valora_untrusted; create role valora_untrusted;");
     await assert.rejects(sql.begin(async tx => {await tx`set local role valora_untrusted`;await tx`select state from valora_private.app_state`;}), (e: unknown)=> (e as {code:string}).code === "42501");
     const reopened = createPostgresStore(url,"test");
     try { assert.equal((await reopened.read()).registrations.length,1); } finally { await reopened.close(); }

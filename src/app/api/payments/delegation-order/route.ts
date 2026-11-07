@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { NextResponse, after } from "next/server";
 import { z } from "zod";
 import { checkoutRegistrationSchema } from "@/lib/validation";
-import { getEvent } from "@/data/events";
+import { getEvent, registrationOpen } from "@/data/events";
 import { DomainError } from "@/lib/domain";
 import { repository } from "@/lib/repository";
 import { sameOrigin, rate, jsonBody, errorResponse } from "@/lib/http";
@@ -25,6 +25,7 @@ export async function POST(request: Request) {
     const input = schema.parse(await jsonBody(request));
     const event = getEvent(input.event_id);
     if (!event) throw new DomainError("NOT_FOUND", "Event not found.", 404);
+    if (!registrationOpen()) throw new DomainError("CLOSED", "Registration is coming soon.", 503);
     if (Date.now() >= new Date(event.date).getTime()) throw new DomainError("CLOSED", "Registration is closed.", 409);
     if (!paymentReady(event)) throw new DomainError("PAYMENT_CONFIG", "Payments are not open yet. Please contact Valora.", 503);
     const emails = input.students.map(s => s.email.toLowerCase());

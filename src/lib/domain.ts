@@ -14,6 +14,7 @@ import type {
   VolunteerProgram,
   VolunteerRegistration,
   PublicVolunteerCredential,
+  VolunteerCommand,
 } from "./models";
 export type DomainState = StoreState & {
   matrices: Record<string, EventCategory[]>;
@@ -45,6 +46,66 @@ export function emptyState(): DomainState {
 }
 function volunteers(state: DomainState) {
   return (state.volunteers ??= []);
+}
+export function volunteerCommand(
+  state: DomainState,
+  command: VolunteerCommand,
+  programs: VolunteerProgram[],
+  runtime: Runtime,
+  actor: string
+): VolunteerRegistration {
+  const program = programs.find((item) => item.id === command.program_id);
+  if (!program) throw new DomainError("NOT_FOUND", "Volunteer programme not found.", 404);
+  const records = volunteers(state);
+  if (command.action === "delete") {
+    const index = records.findIndex((v) => v.volunteer_id === command.volunteer_id);
+    if (index < 0) throw new DomainError("NOT_FOUND", "Volunteer not found.", 404);
+    const [removed] = records.splice(index, 1);
+    audit(state, runtime, "volunteer-deleted", removed.volunteer_id, actor, removed.name);
+    return removed;
+  }
+  const email = command.email.trim().toLowerCase();
+  const duplicate = records.find(
+    (v) => v.program_id === command.program_id && v.email === email && v.volunteer_id !== command.volunteer_id
+  );
+  if (duplicate)
+    throw new DomainError("DUPLICATE", "A volunteer with this email already exists for the event.", 409);
+  const values = {
+    program_id: command.program_id,
+    name: command.name.trim(),
+    email,
+    phone: command.phone.trim(),
+    city: command.city.trim(),
+    contributions: Array.from(new Set(command.contributions.map((item) => item.trim()).filter(Boolean))),
+    shift: (command.shift ?? "").trim(),
+    notes: (command.notes ?? "").trim(),
+    status: command.status ?? ("ACTIVE" as const),
+    updated_at: runtime.now(),
+  };
+  if (command.action === "update") {
+    const record = records.find((v) => v.volunteer_id === command.volunteer_id);
+    if (!record) throw new DomainError("NOT_FOUND", "Volunteer not found.", 404);
+    Object.assign(record, values);
+    audit(state, runtime, "volunteer-updated", record.volunteer_id, actor, record.name);
+    return record;
+  }
+  const record = createVolunteer(
+    state,
+    {
+      program_id: values.program_id,
+      name: values.name,
+      email: values.email,
+      phone: values.phone,
+      city: values.city,
+      contributions: values.contributions,
+      consent: true,
+    },
+    programs,
+    runtime
+  );
+  Object.assign(record, values);
+  audit(state, runtime, "volunteer-created", record.volunteer_id, actor, record.name);
+  return record;
 }
 function findEvent(events: FoundationEvent[], id: string) {
   const e = events.find((e) => e.id === id);
@@ -207,7 +268,7 @@ export function createRegistration(
     "registration:" + registration.registration_id,
     participant.email,
     `${event.shortTitle}: registration received`,
-    `Hello ${participant.name},\n\nWe have received your registration for ${event.title}. Your payment is pending confirmation. Your registration reference is ${registration.registration_id}. We will email your allocation and digital E-ID after verification.\n\nValora Foundation`,
+    `Hello ${participant.name},\n\nWe have received your registration for ${event.title}. Your payment is pending confirmation. Your registration reference is ${registration.registration_id}.\n\nName: ${participant.name}\nInstitution: ${participant.institution}\nClass / grade: ${participant.class}\nEmail: ${participant.email}\nPhone: ${participant.phone}\nExperience: ${participant.experience}\nPreferences: ${registration.preferences.map(id => event.categories.find(c => c.id === id)?.name ?? id).join(", ")}\nEvent date: ${event.date}\nVenue: ${event.venue}. Your E-ID card will be sent separately to this email address at a later date.\n\nValora Foundation`,
     { registration_id: registration.registration_id }
   );
   return view(state, registration.registration_id);
@@ -294,6 +355,13 @@ function allocatedMail(
     { registration_id: id, credential_version: credential.version }
   );
 }
+function registrationConfirmedMail(state: DomainState, id: string, event: FoundationEvent, runtime: Runtime) {
+  const v = view(state, id);
+  email(state, runtime, `confirmed:${id}`, v.participant.email,
+    `${event.shortTitle}: registration confirmed`,
+    `Hello ${v.participant.name},\n\nYour payment has been verified and your registration is confirmed.\nRegistration reference: ${id}\nName: ${v.participant.name}\nInstitution: ${v.participant.institution}\nClass / grade: ${v.participant.class}\nEmail: ${v.participant.email}\nPhone: ${v.participant.phone}\nExperience: ${v.participant.experience}\nPreferences: ${v.registration.preferences.map(key => event.categories.find(c => c.id === key)?.name ?? key).join(", ")}\nPayment reference: ${v.registration.payment_reference}\nDelegate fee: ${event.currency} ${event.fee}\n${v.allocation ? `Committee / category: ${v.allocation.committee}\nPortfolio: ${v.allocation.portfolio}` : "Allocation: pending organiser review"}\nEvent: ${event.title}\nDate: ${event.date}\nVenue: ${event.venue}\n\nYour E-ID card will be sent separately to this email address at a later date. No E-ID card has been issued with this confirmation.\n\nValora Foundation`,
+    { registration_id: id });
+}
 export function allocate(
   state: DomainState,
   id: string,
@@ -307,7 +375,7 @@ export function allocate(
     throw new DomainError("UNPAID", "Only verified payments can be allocated.");
   if (state.allocations.some((a) => a.registration_id === id)) {
     registration.registration_status = "ALLOCATED";
-    allocatedMail(state, id, event, runtime, appUrl);
+    registrationConfirmedMail(state, id, event, runtime);
     return view(state, id);
   }
   const categories = state.matrices[event.id] ?? event.categories;
@@ -333,10 +401,11 @@ export function allocate(
       allocated_at: runtime.now(),
     });
     registration.registration_status = "ALLOCATED";
-    allocatedMail(state, id, event, runtime, appUrl);
+    registrationConfirmedMail(state, id, event, runtime);
     return view(state, id);
   }
   registration.registration_status = "MANUAL_ALLOCATION_REQUIRED";
+  registrationConfirmedMail(state, id, event, runtime);
   return view(state, id);
 }
 export function adminCommand(
@@ -482,7 +551,8 @@ export function adminCommand(
         v.credential.version++;
         v.credential.status = "ACTIVE";
       }
-      allocatedMail(state, command.registration_id, event, runtime, appUrl);
+      if (v.credential) allocatedMail(state, command.registration_id, event, runtime, appUrl);
+      else registrationConfirmedMail(state, command.registration_id, event, runtime);
       break;
     }
     case "regenerate-id": {

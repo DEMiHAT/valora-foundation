@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createVolunteer, emptyState, claimEmail, publicVolunteerCredential, volunteerCount } from "../src/lib/domain";
+import { createVolunteer, emptyState, claimEmail, publicVolunteerCredential, volunteerCount, volunteerCommand } from "../src/lib/domain";
 import type { Runtime } from "../src/lib/domain";
 import type { VolunteerInput, VolunteerProgram } from "../src/lib/models";
 import { buildEmail } from "../src/lib/email-template";
@@ -63,4 +63,40 @@ test("revoked volunteer cards cannot be verified or mailed", () => {
   assert.equal(publicVolunteerCredential(state, volunteer.token, programs, runtime.now())?.status, "REVOKED");
   assert.equal(claimEmail(state, [], runtime, programs), null);
   assert.equal(state.outbox[0].status, "SKIPPED");
+});
+
+test("organisers can create, assign, revoke and remove volunteers", () => {
+  const state = emptyState();
+  const created = volunteerCommand(state, {
+    action: "create",
+    program_id: "community",
+    name: "Riya Sen",
+    email: "riya@example.org",
+    phone: "+91 98888 77777",
+    city: "Bengaluru",
+    contributions: ["Event volunteering"],
+    shift: "Morning",
+    notes: "Registration desk",
+  }, programs, runtime, "organiser");
+  assert.equal(created.shift, "Morning");
+  const updated = volunteerCommand(state, {
+    action: "update",
+    volunteer_id: created.volunteer_id,
+    program_id: "community",
+    name: created.name,
+    email: created.email,
+    phone: created.phone,
+    city: created.city,
+    contributions: created.contributions,
+    status: "REVOKED",
+    shift: "Afternoon",
+  }, programs, runtime, "organiser");
+  assert.equal(updated.status, "REVOKED");
+  volunteerCommand(state, { action: "delete", ...updated }, programs, runtime, "organiser");
+  assert.equal(state.volunteers.length, 0);
+  assert.deepEqual(state.audit.map((item) => item.action), [
+    "volunteer-created",
+    "volunteer-updated",
+    "volunteer-deleted",
+  ]);
 });

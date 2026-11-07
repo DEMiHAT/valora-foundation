@@ -30,6 +30,7 @@ import {
   createVolunteer,
   publicVolunteerCredential,
   volunteerCount as domainVolunteerCount,
+  volunteerCommand,
   type DomainState,
   type Runtime,
 } from "./domain";
@@ -42,6 +43,7 @@ import type {
   VolunteerInput,
   VolunteerRegistration,
   PublicVolunteerCredential,
+  VolunteerCommand,
 } from "./models";
 const runtime: Runtime = {
   uuid: randomUUID,
@@ -63,6 +65,7 @@ export interface Repository {
     actor: string
   ): Promise<RegistrationView>;
   command(command: AdminCommand, actor: string): Promise<RegistrationView>;
+  volunteer(command: VolunteerCommand, actor: string): Promise<VolunteerRegistration>;
   verify(token: string, id?: string): Promise<PublicCredential | null>;
   rateLimit(key: string, limit: number, windowMs: number): Promise<boolean>;
   matrix(
@@ -149,6 +152,9 @@ class LocalRepository implements Repository {
     return this.transact((s) =>
       adminCommand(s, command, events, runtime, actor, appUrl())
     );
+  }
+  volunteer(command: VolunteerCommand, actor: string) {
+    return this.transact((s) => volunteerCommand(s, command, volunteerPrograms, runtime, actor));
   }
   verify(token: string, id?: string) {
     return this.transact((s) =>
@@ -262,6 +268,9 @@ class AppsScriptRepository implements Repository {
   }
   command(command: AdminCommand, actor: string) {
     return this.call<RegistrationView>("command", { command, actor });
+  }
+  volunteer(command: VolunteerCommand, actor: string) {
+    return this.call<VolunteerRegistration>("volunteer-admin", { command, actor });
   }
   verify(token: string, id?: string) {
     return this.call<PublicCredential | null>("verify", { token, id });

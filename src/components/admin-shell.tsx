@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
   LayoutDashboard,
   Users,
+  UserRoundCog,
   CreditCard,
   Layers,
   ScanLine,
@@ -20,6 +21,7 @@ import {
 const nav = [
   { name: "Overview", href: "/admin", icon: LayoutDashboard },
   { name: "Participants", href: "/admin/participants", icon: Users },
+  { name: "Volunteers", href: "/admin/volunteers", icon: UserRoundCog },
   { name: "Payments", href: "/admin/payments", icon: CreditCard },
   { name: "Allocations", href: "/admin/allocations", icon: Layers },
   { name: "Digital IDs", href: "/admin/ids", icon: ScanLine },

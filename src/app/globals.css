@@ -56,6 +56,18 @@ button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
+.button-coming-soon {
+  cursor: not-allowed;
+  opacity: 0.82;
+  pointer-events: none;
+}
+.registration-closed {
+  max-width: 760px;
+  text-align: center;
+}
+.registration-closed h2 { margin: 12px 0; }
+.registration-closed p { max-width: 620px; margin: 0 auto 24px; }
+.registration-closed > div { display: flex; justify-content: center; align-items: center; gap: 22px; flex-wrap: wrap; }
 img {
   max-width: 100%;
   height: auto;
@@ -3963,6 +3975,19 @@ em {
   color: var(--ink);
   width: 100%;
   min-height: 42px;
+}
+.admin-form {
+  display: grid;
+  gap: 16px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.modal-actions > :first-child:not(:last-child) {
+  margin-right: auto;
 }
 .admin-field textarea {
   resize: vertical;

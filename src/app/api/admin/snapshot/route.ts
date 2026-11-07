@@ -4,6 +4,7 @@ import { repository } from "@/lib/repository";
 import { paymentMode, checkoutConfigured } from "@/lib/payment-configuration";
 import { registrationTotals } from "@/lib/registration-totals";
 import { events } from "@/data/events";
+import { volunteerPrograms } from "@/data/volunteer-programs";
 import { errorResponse } from "@/lib/http";
 export async function GET() {
   try {
@@ -20,6 +21,7 @@ export async function GET() {
           categories: state.matrices[e.id] ?? e.categories,
           matrixApproved: process.env[e.matrixApprovalEnvKey] === "true",
         })),
+        volunteerPrograms,
         provider:
           process.env.DATA_PROVIDER === "supabase"
             ? "Supabase PostgreSQL"

@@ -133,7 +133,10 @@ export interface VolunteerRegistration {
   contributions: string[];
   token: string;
   status: "ACTIVE" | "REVOKED";
+  shift?: string;
+  notes?: string;
   created_at: string;
+  updated_at?: string;
 }
 export interface VolunteerInput {
   program_id: string;
@@ -143,6 +146,19 @@ export interface VolunteerInput {
   city: string;
   contributions: string[];
   consent: boolean;
+}
+export interface VolunteerCommand {
+  action: "create" | "update" | "delete";
+  volunteer_id?: string;
+  program_id: string;
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  contributions: string[];
+  shift?: string;
+  notes?: string;
+  status?: "ACTIVE" | "REVOKED";
 }
 export interface PublicVolunteerCredential {
   volunteer_id: string;

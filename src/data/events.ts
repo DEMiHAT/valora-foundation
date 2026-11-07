@@ -164,7 +164,7 @@ export const events: FoundationEvent[] = [
       {
         question: "When will I receive my delegate ID?",
         answer:
-          "After payment verification and committee allocation, your digital Valora E-ID will be issued with a secure verification QR.",
+          "After payment verification, you will receive an email with your registration details. Your digital Valora E-ID will be emailed separately at a later date.",
       },
       {
         question: "Can I choose a country or portfolio?",
@@ -181,6 +181,9 @@ export const events: FoundationEvent[] = [
 ];
 export function getEvent(slugOrId: string) {
   return events.find((e) => e.slug === slugOrId || e.id === slugOrId);
+}
+export function registrationOpen() {
+  return process.env.VALORA_REGISTRATION_OPEN === "true";
 }
 export function formatFee(event: FoundationEvent) {
   return new Intl.NumberFormat("en-IN", {
