@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     sameOrigin(request);
     // Temporarily relaxed for organiser access recovery; the rotated bucket
     // also clears previously exhausted login counters without disabling limits.
-    await rate(request, "login-relaxed-v1", 30, 15 * 60 * 1000);
+    await rate(request, "login-access-v2", 30, 15 * 60 * 1000);
     const input = z
       .object({ username: z.string().max(100), password: z.string().max(256) })
       .parse(await jsonBody(request));
