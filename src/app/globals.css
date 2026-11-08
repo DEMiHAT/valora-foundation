@@ -1487,7 +1487,7 @@ em {
   position: absolute;
   top: -60px;
   left: -24px;
-  color: rgba(101, 11, 37, .085);
+  color: rgba(101, 11, 37, .16);
   font-family: var(--serif);
   font-size: clamp(220px, 30vw, 470px);
   font-weight: 700;
