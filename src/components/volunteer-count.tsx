@@ -20,5 +20,5 @@ export function VolunteerCount({ program }: { program?: string }) {
     }, 15_000);
     return () => { active = false; window.clearInterval(timer); };
   }, [program]);
-  return <strong className="volunteer-count-number" aria-live="polite">{count ?? "—"}</strong>;
+  return <strong className="volunteer-count-number" aria-live="polite">{count === null ? "—" : `${count}+`}</strong>;
 }
