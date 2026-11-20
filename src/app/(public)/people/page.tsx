@@ -94,9 +94,8 @@ export default function People() {
                   />
                 </div>
                 <div className="person-details">
-                  <span className="micro-label">ADVISORY BOARD</span>
                   <h3>{person.name}</h3>
-                  <p className="person-role">{person.valoraRole} · Valora Foundation</p>
+                  <p className="person-role">{person.valoraRole}</p>
                   <p className="person-affiliation">{person.affiliation}</p>
                 </div>
               </article>

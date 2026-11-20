@@ -1,0 +1,177 @@
+/*
+ * Refinement layer — loaded last.
+ * Calmer typography, readable sizes, fewer decorative tics.
+ */
+
+:root {
+  --serif: var(--font-display), Georgia, "Times New Roman", serif;
+  --sans: var(--font-text), "Helvetica Neue", Arial, sans-serif;
+  --muted: #5f625b;
+  --line: #e2dfd4;
+}
+
+body {
+  font-family: var(--sans);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Headings: tighter, steadier, with a quiet italic accent instead of a loud colour swap. */
+h1, h2, h3 { letter-spacing: -0.022em; font-optical-sizing: auto; }
+h1 { line-height: 1.04; }
+h2 { line-height: 1.1; }
+.public-main h2 em,
+.public-main h3 em { color: inherit; font-style: italic; }
+.public-main .values-intro h2 em,
+.public-main .cta-inner h2 em { color: var(--gold); }
+.public-main p { line-height: 1.7; }
+
+/* Labels: no decorative dash, legible size, less shouty tracking. */
+.eyebrow > span { display: none; }
+.public-main .eyebrow,
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.12em; gap: 0; }
+.public-main .micro-label,
+.micro-label { font-size: 11px; letter-spacing: 0.1em; }
+
+/* Buttons & links */
+.public-main :is(.button, .text-link),
+.button,
+.text-link { font-size: 14px; font-weight: 600; letter-spacing: 0; }
+.public-main .button { border-radius: 4px; gap: 12px; }
+.button:hover:not(:disabled) { transform: none; }
+.text-link { padding-bottom: 4px; border-bottom-color: currentColor; transition: opacity .2s; }
+.text-link:hover { opacity: .7; }
+
+/* Header */
+.desktop-nav a { font-size: 14px; letter-spacing: 0; color: #2f322e; }
+.header-cta { font-size: 13px; border-radius: 4px; }
+.brand small { font-size: 9px; letter-spacing: .22em; }
+
+/* Page hero */
+.page-hero p { font-size: 17px; line-height: 1.65; max-width: 560px; }
+
+/* Initiative cards: flat, editorial, no lift */
+.initiative-grid { gap: 0; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.initiative-card {
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 34px 32px;
+  transition: background .25s;
+}
+.initiative-card:hover { transform: none; background: #fff; }
+.initiative-card-top span { font-size: 15px; letter-spacing: .08em; color: #a3a395; font-family: var(--sans); }
+.initiative-card .micro-label { font-size: 11px; }
+.initiative-card h3 { font-size: 26px; }
+.initiative-card p { font-size: 15px; min-height: 0; }
+.initiative-card-bottom span { font-size: 12px; }
+
+/* Reading text that was set at 11–12px */
+.value-item p,
+.partner-invitation p,
+.announcement-card p,
+.future-note p,
+.training-note p,
+.faq-grid > div > p,
+.faq-list details p,
+.director-note-copy p,
+.principle p,
+.media-card p,
+.news-row p,
+.contact-note p,
+.cta-inner p { font-size: 15px; line-height: 1.75; }
+.faq-list summary { font-size: 15px; }
+.contact-note .small-note { font-size: 13px; }
+.contact-channel small { font-size: 11px; letter-spacing: .1em; }
+.included-card p,
+.summary-notice,
+.important-note p { font-size: 14px; }
+.event-meta { font-size: 13px; }
+.status-badge,
+.partner-invitation .micro-label,
+.event-price small,
+.future-note > span,
+.back-link,
+.event-facts span,
+.about-crest > span,
+.founder-signature span,
+.director-signature span,
+.founder-portrait-secondary figcaption { font-size: 11px; }
+.event-facts strong { font-size: 14px; }
+.cta-secondary { font-size: 13px; }
+
+/* Footer */
+.footer-identity > p,
+.footer-links a { font-size: 14px; }
+.footer-links { gap: 10px; }
+.footer-links > span,
+.footer-note > span { font-size: 11px; letter-spacing: .12em; }
+.social-link { font-size: 13px; }
+.footer-note > a > span { font-size: 13px; }
+.footer-bottom { font-size: 12px; }
+
+/* People: a tighter, calmer grid */
+.people-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px 24px; }
+.person-card {
+  background: transparent;
+  border-bottom: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+.person-portrait { aspect-ratio: 4 / 5; border-radius: 4px; }
+.person-portrait::after { display: none; }
+.person-card:hover .person-portrait img { transform: scale(1.03); }
+.person-details { min-height: 0; padding: 18px 2px 0; }
+.person-details h3 { margin-top: 0; font-size: 23px; line-height: 1.2; color: var(--ink); }
+.person-role { margin-top: 8px; font-size: 11.5px; letter-spacing: .09em; }
+.person-affiliation { margin-top: 10px; padding-top: 0; border-top: 0; font-size: 14px; line-height: 1.55; color: #5f625b; }
+.people-intro > p { font-size: 16px; }
+.partner-school-link { font-size: 12px; }
+.partner-school-download { border-radius: 4px; }
+.partner-school-download p { font-size: 15px; }
+
+@media (max-width: 1100px) {
+  .people-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 850px) {
+  .initiative-grid { border-left: 0; }
+  .initiative-card { border-left: 1px solid var(--line); }
+  .people-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 16px; }
+  .person-details h3 { font-size: 20px; }
+}
+@media (max-width: 600px) {
+  .eyebrow, .public-main .eyebrow { font-size: 11px; }
+  .desktop-nav a { font-size: 13px; }
+  .initiative-card p { font-size: 15px; }
+  .initiative-card-bottom span { font-size: 12px; }
+  .person-affiliation { font-size: 13px; }
+}
+@media (max-width: 340px) {
+  .people-grid { grid-template-columns: 1fr; }
+}
+
+/* Second pass: hero details, partnership card, leftovers */
+.orbit-text-link { font-size: 14px; }
+.orbit-bottom { font-size: 11px; }
+.public-main .orbital-value { border-radius: 8px; }
+.public-main .orbital-value-index { font-size: 11px; }
+.public-main .orbit-value-controls button { font-size: 13px; }
+.public-main .hero-mini-ticket { border-radius: 8px; }
+.partner-invitation {
+  border-radius: 4px;
+  border-left: 0;
+  border-top: 2px solid #bda569;
+  box-shadow: none;
+  background: #f1efe6;
+}
+.partner-invitation .micro-label { font-size: 11px; }
+.partner-school-intro > p,
+.people-intro > p { font-size: 16px; line-height: 1.7; }
+.partner-school-card { box-shadow: none; border-radius: 4px; }
+.public-main .event-card { border-radius: 6px; }
+.announcement-bar { font-size: 12px; }
+.hero-bottom, .hero-footnote { font-size: 11px; }
