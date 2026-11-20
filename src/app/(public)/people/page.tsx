@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Download } from "lucide-react";
 import { CTA, Eyebrow, PageHero } from "@/components/public";
 
 const advisoryBoard = [
@@ -30,6 +30,34 @@ const advisoryBoard = [
     affiliation: "Academic Co-ordinator, Velammal Bodhi Campus, Thanjavur",
     image: "/people/ashif.jpeg",
     imageClass: "people-portrait-ashif",
+  },
+  {
+    name: "Ra. Shhiva",
+    valoraRole: "Honorary Advisor",
+    affiliation: "Attorney at Law",
+    image: "/people/ra-shhiva.jpeg",
+    imageClass: "people-portrait-shhiva",
+  },
+  {
+    name: "Mrs. R. Ananthi",
+    valoraRole: "Senior Advisor",
+    affiliation: "Principal, Amrita Vidyalayam, Thanjavur",
+    image: "/people/r-ananthi.jpeg",
+    imageClass: "people-portrait-ananthi",
+  },
+  {
+    name: "Mrs. V. Nancy Caroline",
+    valoraRole: "Senior Advisor",
+    affiliation: "Principal, Loyola Tech School, Dindugal",
+    image: "/people/v-nancy-caroline.jpeg",
+    imageClass: "people-portrait-nancy",
+  },
+  {
+    name: "Adv. S. Unni Krishnan",
+    valoraRole: "Honorary Advisor",
+    affiliation: "Advocate, Retd. Addl. Superintendent of Police (TPS), Chairman - Travancore Educational & Charitable Trust, Kerala",
+    image: "/people/s-unni-krishnan.jpeg",
+    imageClass: "people-portrait-unni",
   },
 ] as const;
 
@@ -83,6 +111,7 @@ export default function People() {
             <h2>Growing through<br /><em>collaboration.</em></h2>
             <p>We work with schools that share our commitment to meaningful learning, leadership and opportunity for young people.</p>
           </div>
+          <div className="partner-school-stack">
           <a
             className="partner-school-card"
             href="https://springdaysschool.com"
@@ -105,6 +134,20 @@ export default function People() {
               <ArrowUpRight size={22} />
             </div>
           </a>
+          <a
+            className="partner-school-download"
+            href="/documents/valora-mun-hosting-proposal.pdf"
+            download="Valora-MUN-Hosting-Proposal.pdf"
+            aria-label="Download the Valora MUN hosting proposal (PDF)"
+          >
+            <div>
+              <span className="micro-label">FOR SCHOOLS · HOST VALORA MUN</span>
+              <strong>Valora MUN Hosting Proposal</strong>
+              <p>Interested in hosting a Valora MUN conference at your school? Download our proposal letter for the details.</p>
+            </div>
+            <span className="partner-school-download-icon"><Download size={22} /></span>
+          </a>
+          </div>
         </div>
       </section>
       <CTA />

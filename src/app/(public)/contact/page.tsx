@@ -1,4 +1,4 @@
-import { Instagram, Mail, ArrowUpRight } from "lucide-react";
+import { Instagram, Mail, ArrowUpRight, Download } from "lucide-react";
 import { PageHero, Eyebrow, TextLink } from "@/components/public";
 import { foundation } from "@/data/foundation";
 export const metadata = { title: "Contact" };
@@ -51,6 +51,17 @@ export default function Contact() {
               Contact the team about learning programmes, community initiatives or partnerships.
             </p>
             <TextLink href="/people">Meet our people</TextLink>
+            <p>
+              Is your school interested in hosting a Valora MUN conference?
+            </p>
+            <a
+              className="text-link"
+              href="/documents/valora-mun-hosting-proposal.pdf"
+              download="Valora-MUN-Hosting-Proposal.pdf"
+            >
+              Download the MUN hosting proposal
+              <Download size={18} />
+            </a>
             <p className="small-note">
               If you’ve registered, include your registration reference when
               contacting the team. Please don’t share payment receipts or

@@ -1803,6 +1803,10 @@ em {
 .person-portrait .people-portrait-geetha { object-position: 58% center; }
 .person-portrait .people-portrait-yajith { object-position: 52% 24%; }
 .person-portrait .people-portrait-ashif { object-position: center 18%; }
+.person-portrait .people-portrait-shhiva { object-position: center 28%; }
+.person-portrait .people-portrait-ananthi { object-position: center 25%; }
+.person-portrait .people-portrait-nancy { object-position: center 25%; }
+.person-portrait .people-portrait-unni { object-position: center 20%; }
 .person-details {
   min-height: 245px;
   padding: 30px 30px 34px;
@@ -1898,6 +1902,47 @@ em {
 .partner-school-card:hover .partner-school-link svg { transform: translate(3px, -3px); }
 .partner-school-link svg { transition: transform .25s ease; }
 .partner-school-card:focus-visible { outline: 3px solid var(--gold); outline-offset: 5px; }
+.partner-school-stack { display: grid; gap: 24px; }
+.partner-school-download {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  padding: clamp(24px, 3.5vw, 38px);
+  border: 1px solid rgba(8, 29, 54, .16);
+  background: #fff;
+  color: var(--navy);
+  transition: border-color .25s ease, box-shadow .25s ease;
+}
+.partner-school-download .micro-label { color: var(--gold); }
+.partner-school-download strong {
+  display: block;
+  margin-top: 12px;
+  font-family: var(--serif);
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 500;
+}
+.partner-school-download p {
+  max-width: 440px;
+  margin-top: 10px;
+  color: #535b62;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.partner-school-download-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  transition: transform .25s ease;
+}
+.partner-school-download:hover { border-color: var(--gold); box-shadow: 0 18px 45px rgba(8, 29, 54, .12); }
+.partner-school-download:hover .partner-school-download-icon { transform: translateY(2px); }
+.partner-school-download:focus-visible { outline: 3px solid var(--gold); outline-offset: 5px; }
 .principle-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
